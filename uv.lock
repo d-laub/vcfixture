@@ -871,7 +871,7 @@ wheels = [
 ]
 
 [[package]]
-name = "vcforge"
+name = "vcfixture"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

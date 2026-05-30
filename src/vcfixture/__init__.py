@@ -1,4 +1,4 @@
-"""vcforge — generate small VCF test data with decoded ground truth."""
+"""vcfixture — generate small VCF test data with decoded ground truth."""
 
 from . import strategies
 from ._spec.number import Number

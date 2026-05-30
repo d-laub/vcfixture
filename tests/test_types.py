@@ -1,4 +1,4 @@
-from vcforge._spec.types import Type
+from vcfixture._spec.types import Type
 
 
 def test_type_header_strings():

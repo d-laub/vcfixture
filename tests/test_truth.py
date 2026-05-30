@@ -1,8 +1,8 @@
 import numpy as np
 
-from vcforge.genotype import Genotype
-from vcforge.model import ContigDef, Record, VcfDocument
-from vcforge.truth import derive_truth
+from vcfixture.genotype import Genotype
+from vcfixture.model import ContigDef, Record, VcfDocument
+from vcfixture.truth import derive_truth
 
 
 def _doc():

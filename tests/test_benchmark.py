@@ -3,7 +3,7 @@ representative document must stay cheap."""
 
 import time
 
-from vcforge.build import VcfBuilder
+from vcfixture.build import VcfBuilder
 
 
 def _representative_doc():

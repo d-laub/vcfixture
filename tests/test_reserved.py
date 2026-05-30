@@ -1,8 +1,8 @@
 import pytest
 
-from vcforge._spec.number import Number
-from vcforge._spec.reserved import reserved
-from vcforge._spec.types import Type
+from vcfixture._spec.number import Number
+from vcfixture._spec.reserved import reserved
+from vcfixture._spec.types import Type
 
 
 def test_reserved_info_af():

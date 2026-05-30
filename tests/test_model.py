@@ -1,6 +1,6 @@
-from vcforge._spec.reserved import reserved
-from vcforge.genotype import Genotype
-from vcforge.model import ContigDef, Record, VcfDocument
+from vcfixture._spec.reserved import reserved
+from vcfixture.genotype import Genotype
+from vcfixture.model import ContigDef, Record, VcfDocument
 
 
 def _doc():

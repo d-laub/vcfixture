@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pysam
 
-from vcforge.build import VcfBuilder
+from vcfixture.build import VcfBuilder
 
 
 def _doc():

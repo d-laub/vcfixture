@@ -1,8 +1,8 @@
-# Contributing to vcforge
+# Contributing to vcfixture
 
 ## Requirements
 
-vcforge uses [**uv**](https://docs.astral.sh/uv/) for environment management and
+vcfixture uses [**uv**](https://docs.astral.sh/uv/) for environment management and
 as its build backend. **uv is required** — the project is not set up for bare
 `pip`/`venv` workflows, and the dev toolchain is pinned in `uv.lock`.
 
@@ -40,7 +40,7 @@ uv run prek run --all-files   # run all hooks against the whole tree
 CI and on every commit:
 
 - **ruff** — linting and formatting.
-- **pyrefly** — type checking. vcforge ships `py.typed` and is a type-safe
+- **pyrefly** — type checking. vcfixture ships `py.typed` and is a type-safe
   library; `src/` must type-check cleanly. New code needs accurate annotations.
 - **commitizen** — commit messages must follow
   [Conventional Commits](https://www.conventionalcommits.org/) (e.g.

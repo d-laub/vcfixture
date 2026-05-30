@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
-from vcforge.build import VcfBuilder
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
+from vcfixture.build import VcfBuilder
 
 
 def test_build_biallelic_with_dosage():

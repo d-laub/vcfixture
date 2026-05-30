@@ -1,4 +1,4 @@
-# vcforge Implementation Plan
+# vcfixture Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -13,10 +13,10 @@
 ## File Structure
 
 ```
-vcforge/
+vcfixture/
   pyproject.toml
   README.md
-  src/vcforge/
+  src/vcfixture/
     __init__.py            # public API exports
     _spec/
       __init__.py
@@ -62,8 +62,8 @@ vcforge/
 
 **Files:**
 - Create: `pyproject.toml`
-- Create: `src/vcforge/__init__.py`
-- Create: `src/vcforge/_spec/__init__.py`
+- Create: `src/vcfixture/__init__.py`
+- Create: `src/vcfixture/_spec/__init__.py`
 - Create: `tests/__init__.py`
 
 - [ ] **Step 1: Write `pyproject.toml`**
@@ -74,7 +74,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "vcforge"
+name = "vcfixture"
 version = "0.1.0"
 description = "Generate small VCF (v4.5) test data with decoded ground truth."
 requires-python = ">=3.10"
@@ -84,7 +84,7 @@ dependencies = ["numpy>=1.24", "pysam>=0.22"]
 dev = ["pytest>=8", "hypothesis>=6.100", "cyvcf2>=0.30"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/vcforge"]
+packages = ["src/vcfixture"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -93,13 +93,13 @@ testpaths = ["tests"]
 - [ ] **Step 2: Create empty package files**
 
 ```python
-# src/vcforge/__init__.py
-"""vcforge — generate small VCF test data with decoded ground truth."""
+# src/vcfixture/__init__.py
+"""vcfixture — generate small VCF test data with decoded ground truth."""
 __version__ = "0.1.0"
 ```
 
 ```python
-# src/vcforge/_spec/__init__.py
+# src/vcfixture/_spec/__init__.py
 ```
 
 ```python
@@ -108,19 +108,19 @@ __version__ = "0.1.0"
 
 - [ ] **Step 3: Install editable with dev extras**
 
-Run: `cd /Users/david/projects/vcforge && python -m pip install -e ".[dev]"`
-Expected: ends with `Successfully installed vcforge-0.1.0`
+Run: `cd /Users/david/projects/vcfixture && python -m pip install -e ".[dev]"`
+Expected: ends with `Successfully installed vcfixture-0.1.0`
 
 - [ ] **Step 4: Verify import + pytest discovery**
 
-Run: `cd /Users/david/projects/vcforge && python -c "import vcforge; print(vcforge.__version__)" && python -m pytest -q`
+Run: `cd /Users/david/projects/vcfixture && python -c "import vcfixture; print(vcfixture.__version__)" && python -m pytest -q`
 Expected: prints `0.1.0`; pytest reports `no tests ran` (exit 5 is fine).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pyproject.toml src/vcforge/__init__.py src/vcforge/_spec/__init__.py tests/__init__.py
-git commit -m "chore: scaffold vcforge package"
+git add pyproject.toml src/vcfixture/__init__.py src/vcfixture/_spec/__init__.py tests/__init__.py
+git commit -m "chore: scaffold vcfixture package"
 ```
 
 ---
@@ -128,14 +128,14 @@ git commit -m "chore: scaffold vcforge package"
 ## Task 1: Type enum
 
 **Files:**
-- Create: `src/vcforge/_spec/types.py`
+- Create: `src/vcfixture/_spec/types.py`
 - Test: `tests/test_types.py`
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
 # tests/test_types.py
-from vcforge._spec.types import Type
+from vcfixture._spec.types import Type
 
 def test_type_header_strings():
     assert Type.INTEGER.value == "Integer"
@@ -153,12 +153,12 @@ def test_format_allowed_types_excludes_flag():
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `python -m pytest tests/test_types.py -q`
-Expected: FAIL with `ModuleNotFoundError: No module named 'vcforge._spec.types'`
+Expected: FAIL with `ModuleNotFoundError: No module named 'vcfixture._spec.types'`
 
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/_spec/types.py
+# src/vcfixture/_spec/types.py
 from __future__ import annotations
 from enum import Enum
 
@@ -186,7 +186,7 @@ Expected: PASS (2 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/_spec/types.py tests/test_types.py
+git add src/vcfixture/_spec/types.py tests/test_types.py
 git commit -m "feat: add VCF Type enum"
 ```
 
@@ -195,7 +195,7 @@ git commit -m "feat: add VCF Type enum"
 ## Task 2: Number + cardinality
 
 **Files:**
-- Create: `src/vcforge/_spec/number.py`
+- Create: `src/vcfixture/_spec/number.py`
 - Test: `tests/test_number.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -203,7 +203,7 @@ git commit -m "feat: add VCF Type enum"
 ```python
 # tests/test_number.py
 import pytest
-from vcforge._spec.number import Number, NumberKind
+from vcfixture._spec.number import Number, NumberKind
 
 def test_header_strings():
     assert Number.ONE.header_str() == "1"
@@ -242,7 +242,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/_spec/number.py
+# src/vcfixture/_spec/number.py
 from __future__ import annotations
 import math
 from dataclasses import dataclass
@@ -306,7 +306,7 @@ Expected: PASS (6 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/_spec/number.py tests/test_number.py
+git add src/vcfixture/_spec/number.py tests/test_number.py
 git commit -m "feat: add Number model and cardinality"
 ```
 
@@ -315,14 +315,14 @@ git commit -m "feat: add Number model and cardinality"
 ## Task 3: Genotype ordering enumerator
 
 **Files:**
-- Create: `src/vcforge/_spec/genotype_order.py`
+- Create: `src/vcfixture/_spec/genotype_order.py`
 - Test: `tests/test_genotype_order.py`
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
 # tests/test_genotype_order.py
-from vcforge._spec.genotype_order import genotype_ordering
+from vcfixture._spec.genotype_order import genotype_ordering
 
 def test_diploid_biallelic():
     assert genotype_ordering(ploidy=2, n_alleles=2) == [(0, 0), (0, 1), (1, 1)]
@@ -350,7 +350,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/_spec/genotype_order.py
+# src/vcfixture/_spec/genotype_order.py
 from __future__ import annotations
 
 def genotype_ordering(ploidy: int, n_alleles: int) -> list[tuple[int, ...]]:
@@ -384,7 +384,7 @@ Expected: PASS (4 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/_spec/genotype_order.py tests/test_genotype_order.py
+git add src/vcfixture/_spec/genotype_order.py tests/test_genotype_order.py
 git commit -m "feat: add Number=G genotype ordering"
 ```
 
@@ -393,7 +393,7 @@ git commit -m "feat: add Number=G genotype ordering"
 ## Task 4: FieldDef + validity invariants
 
 **Files:**
-- Create: `src/vcforge/_spec/fielddef.py`
+- Create: `src/vcfixture/_spec/fielddef.py`
 - Test: `tests/test_fielddef.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -401,9 +401,9 @@ git commit -m "feat: add Number=G genotype ordering"
 ```python
 # tests/test_fielddef.py
 import pytest
-from vcforge._spec.fielddef import FieldDef
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
+from vcfixture._spec.fielddef import FieldDef
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
 
 def test_valid_info_field():
     f = FieldDef("AF", Number.A, Type.FLOAT, "Allele frequency", "INFO")
@@ -443,7 +443,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/_spec/fielddef.py
+# src/vcfixture/_spec/fielddef.py
 from __future__ import annotations
 import re
 from dataclasses import dataclass
@@ -489,7 +489,7 @@ Expected: PASS (6 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/_spec/fielddef.py tests/test_fielddef.py
+git add src/vcfixture/_spec/fielddef.py tests/test_fielddef.py
 git commit -m "feat: add FieldDef with validity invariants"
 ```
 
@@ -498,7 +498,7 @@ git commit -m "feat: add FieldDef with validity invariants"
 ## Task 5: Reserved-field registry (curated)
 
 **Files:**
-- Create: `src/vcforge/_spec/reserved.py`
+- Create: `src/vcfixture/_spec/reserved.py`
 - Test: `tests/test_reserved.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -506,9 +506,9 @@ git commit -m "feat: add FieldDef with validity invariants"
 ```python
 # tests/test_reserved.py
 import pytest
-from vcforge._spec.reserved import reserved
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
+from vcfixture._spec.reserved import reserved
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
 
 def test_reserved_info_af():
     f = reserved("AF", "INFO")
@@ -539,7 +539,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/_spec/reserved.py
+# src/vcfixture/_spec/reserved.py
 from __future__ import annotations
 from .fielddef import FieldDef
 from .number import Number
@@ -579,7 +579,7 @@ Expected: PASS (5 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/_spec/reserved.py tests/test_reserved.py
+git add src/vcfixture/_spec/reserved.py tests/test_reserved.py
 git commit -m "feat: add curated reserved-field registry"
 ```
 
@@ -588,7 +588,7 @@ git commit -m "feat: add curated reserved-field registry"
 ## Task 6: Genotype model (parse + render)
 
 **Files:**
-- Create: `src/vcforge/genotype.py`
+- Create: `src/vcfixture/genotype.py`
 - Test: `tests/test_genotype.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -596,7 +596,7 @@ git commit -m "feat: add curated reserved-field registry"
 ```python
 # tests/test_genotype.py
 import pytest
-from vcforge.genotype import Genotype
+from vcfixture.genotype import Genotype
 
 def test_parse_phased_diploid():
     g = Genotype.parse("0|1")
@@ -632,7 +632,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/genotype.py
+# src/vcfixture/genotype.py
 from __future__ import annotations
 import re
 from dataclasses import dataclass
@@ -682,7 +682,7 @@ Expected: PASS (5 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/genotype.py tests/test_genotype.py
+git add src/vcfixture/genotype.py tests/test_genotype.py
 git commit -m "feat: add Genotype parse/render"
 ```
 
@@ -691,16 +691,16 @@ git commit -m "feat: add Genotype parse/render"
 ## Task 7: Record + VcfDocument model
 
 **Files:**
-- Create: `src/vcforge/model.py`
+- Create: `src/vcfixture/model.py`
 - Test: `tests/test_model.py`
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
 # tests/test_model.py
-from vcforge.model import Record, ContigDef, VcfDocument
-from vcforge.genotype import Genotype
-from vcforge._spec.reserved import reserved
+from vcfixture.model import Record, ContigDef, VcfDocument
+from vcfixture.genotype import Genotype
+from vcfixture._spec.reserved import reserved
 
 def _doc():
     rec = Record(
@@ -742,7 +742,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/model.py
+# src/vcfixture/model.py
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
@@ -819,7 +819,7 @@ Expected: PASS (2 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/model.py tests/test_model.py
+git add src/vcfixture/model.py tests/test_model.py
 git commit -m "feat: add Record, ContigDef, VcfDocument model"
 ```
 
@@ -828,7 +828,7 @@ git commit -m "feat: add Record, ContigDef, VcfDocument model"
 ## Task 8: Variant-class constructors + classify
 
 **Files:**
-- Create: `src/vcforge/variants.py`
+- Create: `src/vcfixture/variants.py`
 - Test: `tests/test_variants.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -836,7 +836,7 @@ git commit -m "feat: add Record, ContigDef, VcfDocument model"
 ```python
 # tests/test_variants.py
 import pytest
-from vcforge import variants as v
+from vcfixture import variants as v
 
 def test_constructors():
     assert v.snp("A", "T") == ("A", "T")
@@ -867,7 +867,7 @@ Expected: FAIL with `ImportError`/`AttributeError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/variants.py
+# src/vcfixture/variants.py
 from __future__ import annotations
 
 def snp(ref_base: str, alt_base: str) -> tuple[str, str]:
@@ -916,7 +916,7 @@ Expected: PASS (3 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/variants.py tests/test_variants.py
+git add src/vcfixture/variants.py tests/test_variants.py
 git commit -m "feat: add variant-class constructors and classify"
 ```
 
@@ -925,19 +925,19 @@ git commit -m "feat: add variant-class constructors and classify"
 ## Task 9: Serializer (model -> VCF text)
 
 **Files:**
-- Create: `src/vcforge/serialize.py`
+- Create: `src/vcfixture/serialize.py`
 - Test: `tests/test_serialize.py`
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
 # tests/test_serialize.py
-from vcforge.model import Record, ContigDef, VcfDocument
-from vcforge.genotype import Genotype
-from vcforge.serialize import render_document
-from vcforge._spec.fielddef import FieldDef
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
+from vcfixture.model import Record, ContigDef, VcfDocument
+from vcfixture.genotype import Genotype
+from vcfixture.serialize import render_document
+from vcfixture._spec.fielddef import FieldDef
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
 
 def _doc():
     af = FieldDef("AF", Number.A, Type.FLOAT, "Allele frequency", "INFO")
@@ -994,7 +994,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/serialize.py
+# src/vcfixture/serialize.py
 from __future__ import annotations
 from typing import Any
 from .genotype import Genotype
@@ -1088,7 +1088,7 @@ Expected: PASS (4 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/serialize.py tests/test_serialize.py
+git add src/vcfixture/serialize.py tests/test_serialize.py
 git commit -m "feat: add VCF serializer"
 ```
 
@@ -1097,7 +1097,7 @@ git commit -m "feat: add VCF serializer"
 ## Task 10: Truth deriver (model -> GroundTruth)
 
 **Files:**
-- Create: `src/vcforge/truth.py`
+- Create: `src/vcfixture/truth.py`
 - Test: `tests/test_truth.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -1105,9 +1105,9 @@ git commit -m "feat: add VCF serializer"
 ```python
 # tests/test_truth.py
 import numpy as np
-from vcforge.model import Record, ContigDef, VcfDocument
-from vcforge.genotype import Genotype
-from vcforge.truth import derive_truth
+from vcfixture.model import Record, ContigDef, VcfDocument
+from vcfixture.genotype import Genotype
+from vcfixture.truth import derive_truth
 
 def _doc():
     rec = Record(
@@ -1157,7 +1157,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/truth.py
+# src/vcfixture/truth.py
 from __future__ import annotations
 from dataclasses import dataclass
 import numpy as np
@@ -1224,7 +1224,7 @@ Expected: PASS (4 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/truth.py tests/test_truth.py
+git add src/vcfixture/truth.py tests/test_truth.py
 git commit -m "feat: add ground-truth deriver"
 ```
 
@@ -1233,7 +1233,7 @@ git commit -m "feat: add ground-truth deriver"
 ## Task 11: VcfBuilder
 
 **Files:**
-- Create: `src/vcforge/build.py`
+- Create: `src/vcfixture/build.py`
 - Test: `tests/test_build.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -1242,9 +1242,9 @@ git commit -m "feat: add ground-truth deriver"
 # tests/test_build.py
 import numpy as np
 import pytest
-from vcforge.build import VcfBuilder
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
+from vcfixture.build import VcfBuilder
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
 
 def test_build_biallelic_with_dosage():
     doc = (VcfBuilder(samples=["s1", "s2"], contigs=[("chr1", 1000)])
@@ -1293,7 +1293,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/build.py
+# src/vcfixture/build.py
 from __future__ import annotations
 from typing import Any
 from .genotype import Genotype
@@ -1417,7 +1417,7 @@ Expected: PASS (5 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/build.py tests/test_build.py
+git add src/vcfixture/build.py tests/test_build.py
 git commit -m "feat: add VcfBuilder with eager validation"
 ```
 
@@ -1426,7 +1426,7 @@ git commit -m "feat: add VcfBuilder with eager validation"
 ## Task 12: IO — text + bgzip + index
 
 **Files:**
-- Create: `src/vcforge/io.py`
+- Create: `src/vcfixture/io.py`
 - Test: `tests/test_io.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -1435,7 +1435,7 @@ git commit -m "feat: add VcfBuilder with eager validation"
 # tests/test_io.py
 from pathlib import Path
 import pysam
-from vcforge.build import VcfBuilder
+from vcfixture.build import VcfBuilder
 
 def _doc():
     return (VcfBuilder(samples=["s1", "s2"], contigs=[("chr1", 100000)])
@@ -1464,7 +1464,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/io.py
+# src/vcfixture/io.py
 from __future__ import annotations
 from pathlib import Path
 import pysam
@@ -1496,7 +1496,7 @@ Expected: PASS (2 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/io.py tests/test_io.py
+git add src/vcfixture/io.py tests/test_io.py
 git commit -m "feat: add text + bgzip/index IO"
 ```
 
@@ -1505,7 +1505,7 @@ git commit -m "feat: add text + bgzip/index IO"
 ## Task 13: Reference-aware adapter
 
 **Files:**
-- Create: `src/vcforge/reference.py`
+- Create: `src/vcfixture/reference.py`
 - Test: `tests/test_reference.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -1514,7 +1514,7 @@ git commit -m "feat: add text + bgzip/index IO"
 # tests/test_reference.py
 from pathlib import Path
 import pysam
-from vcforge.reference import Reference
+from vcfixture.reference import Reference
 
 def _make_fasta(tmp_path: Path) -> Path:
     fa = tmp_path / "ref.fa"
@@ -1548,7 +1548,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/reference.py
+# src/vcfixture/reference.py
 from __future__ import annotations
 import pysam
 
@@ -1602,7 +1602,7 @@ Expected: PASS (3 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/reference.py tests/test_reference.py
+git add src/vcfixture/reference.py tests/test_reference.py
 git commit -m "feat: add reference-aware REF/ALT adapter"
 ```
 
@@ -1611,7 +1611,7 @@ git commit -m "feat: add reference-aware REF/ALT adapter"
 ## Task 14: Hypothesis strategies + parametrize tables
 
 **Files:**
-- Create: `src/vcforge/strategies.py`
+- Create: `src/vcfixture/strategies.py`
 - Test: `tests/test_strategies.py`
 
 - [ ] **Step 1: Write the failing test**
@@ -1619,9 +1619,9 @@ git commit -m "feat: add reference-aware REF/ALT adapter"
 ```python
 # tests/test_strategies.py
 from hypothesis import given, settings, HealthCheck
-from vcforge import strategies as S
-from vcforge.model import VcfDocument
-from vcforge._spec.number import NumberKind
+from vcfixture import strategies as S
+from vcfixture.model import VcfDocument
+from vcfixture._spec.number import NumberKind
 
 def test_all_number_type_combos_table_is_exhaustive():
     combos = S.ALL_NUMBER_TYPE_COMBOS
@@ -1657,7 +1657,7 @@ Expected: FAIL with `ModuleNotFoundError`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/strategies.py
+# src/vcfixture/strategies.py
 from __future__ import annotations
 from hypothesis import strategies as st
 from .build import VcfBuilder
@@ -1745,7 +1745,7 @@ Expected: PASS (3 passed)
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/strategies.py tests/test_strategies.py
+git add src/vcfixture/strategies.py tests/test_strategies.py
 git commit -m "feat: add Hypothesis strategies and coverage tables"
 ```
 
@@ -1767,7 +1767,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from hypothesis import given, settings, HealthCheck
-from vcforge import strategies as S
+from vcfixture import strategies as S
 
 cyvcf2 = pytest.importorskip("cyvcf2")
 
@@ -1834,8 +1834,8 @@ git commit -m "test: round-trip self-validation against cyvcf2"
 representative document must stay cheap. Budget is generous to avoid CI
 flakiness but tight enough to catch order-of-magnitude regressions."""
 import time
-from vcforge.build import VcfBuilder
-from vcforge.genotype import Genotype
+from vcfixture.build import VcfBuilder
+from vcfixture.genotype import Genotype
 
 def _representative_doc():
     b = VcfBuilder(samples=[f"s{i}" for i in range(10)],
@@ -1881,11 +1881,11 @@ git commit -m "test: add performance gate"
 # tests/test_genoray_parity.py
 """Reproduce genoray's hand-authored biallelic fixture via the builder and
 assert the derived truth matches the numpy literals currently hand-coded in
-genoray/tests/test_vcf.py. This proves vcforge can replace those fixtures."""
+genoray/tests/test_vcf.py. This proves vcfixture can replace those fixtures."""
 import numpy as np
-from vcforge.build import VcfBuilder
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
+from vcfixture.build import VcfBuilder
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
 
 def _genoray_biallelic():
     # Mirrors genoray biallelic.vcf rows on chr1 at 81262/81262/81265
@@ -1942,7 +1942,7 @@ git commit -m "test: genoray biallelic fixture parity"
 ## Task 18: Public API + README
 
 **Files:**
-- Modify: `src/vcforge/__init__.py`
+- Modify: `src/vcfixture/__init__.py`
 - Create: `README.md`
 - Test: `tests/test_public_api.py`
 
@@ -1950,12 +1950,12 @@ git commit -m "test: genoray biallelic fixture parity"
 
 ```python
 # tests/test_public_api.py
-import vcforge
+import vcfixture
 
 def test_public_exports():
     for name in ["VcfBuilder", "Number", "Type", "Genotype",
                  "GroundTruth", "Reference", "strategies"]:
-        assert hasattr(vcforge, name), f"missing public export: {name}"
+        assert hasattr(vcfixture, name), f"missing public export: {name}"
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -1966,8 +1966,8 @@ Expected: FAIL with `AssertionError: missing public export: VcfBuilder`
 - [ ] **Step 3: Write minimal implementation**
 
 ```python
-# src/vcforge/__init__.py
-"""vcforge — generate small VCF test data with decoded ground truth."""
+# src/vcfixture/__init__.py
+"""vcfixture — generate small VCF test data with decoded ground truth."""
 from . import strategies
 from .build import VcfBuilder
 from .genotype import Genotype
@@ -1985,14 +1985,14 @@ __all__ = [
 
 ```markdown
 <!-- README.md -->
-# vcforge
+# vcfixture
 
 Generate small VCF (v4.5) test data — via an explicit builder or Hypothesis
 strategies — with the decoded ground truth returned alongside, so parser tests
 assert against a known oracle instead of hand-coded literals.
 
 ```python
-from vcforge import VcfBuilder, Number, Type
+from vcfixture import VcfBuilder, Number, Type
 
 doc = (VcfBuilder(samples=["s1", "s2"], contigs=[("chr1", 100000)])
        .info("AF", Number.A, Type.FLOAT)
@@ -2005,7 +2005,7 @@ truth = doc.truth()                        # GroundTruth (numpy genotypes, ...)
 doc.write("x.vcf.gz", bgzip=True, index=True)
 ```
 
-See `docs/superpowers/specs/2026-05-30-vcforge-design.md` for the design.
+See `docs/superpowers/specs/2026-05-30-vcfixture-design.md` for the design.
 ```
 
 - [ ] **Step 4: Run test + full suite**
@@ -2016,7 +2016,7 @@ Expected: PASS — entire suite green.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/vcforge/__init__.py README.md tests/test_public_api.py
+git add src/vcfixture/__init__.py README.md tests/test_public_api.py
 git commit -m "feat: public API exports and README"
 ```
 

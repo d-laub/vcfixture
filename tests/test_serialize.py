@@ -1,9 +1,9 @@
-from vcforge._spec.fielddef import FieldDef
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
-from vcforge.genotype import Genotype
-from vcforge.model import ContigDef, Record, VcfDocument
-from vcforge.serialize import render_document
+from vcfixture._spec.fielddef import FieldDef
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
+from vcfixture.genotype import Genotype
+from vcfixture.model import ContigDef, Record, VcfDocument
+from vcfixture.serialize import render_document
 
 
 def _doc():
@@ -64,7 +64,7 @@ def test_record_line_fields():
 
 def test_non_finite_floats_render_as_missing():
     # VCF has no nan/inf literal; non-finite floats must serialize to ".".
-    from vcforge.serialize import _fmt_scalar, _fmt_value
+    from vcfixture.serialize import _fmt_scalar, _fmt_value
 
     assert _fmt_scalar(float("nan")) == "."
     assert _fmt_scalar(float("inf")) == "."
@@ -72,7 +72,7 @@ def test_non_finite_floats_render_as_missing():
 
 
 def test_percent_encoding_of_reserved_chars():
-    from vcforge.serialize import _encode, _fmt_scalar
+    from vcfixture.serialize import _encode, _fmt_scalar
 
     assert _encode("a;b") == "a%3Bb"
     assert _encode("a:b,c=d") == "a%3Ab%2Cc%3Dd"

@@ -1,10 +1,10 @@
-# vcforge Phase 2 — Matrix & Multiallelic Round-Trip Coverage
+# vcfixture Phase 2 — Matrix & Multiallelic Round-Trip Coverage
 
 > **For agentic workers:** execute task-by-task, TDD, commit per task. Use `.venv/bin/python` (CPython 3.12). NEVER system python. Commit author: `git -c user.name='David' -c user.email='david@standardmodel.bio'`.
 
 **Goal:** Close the gap between the spec's success criteria and what the cyvcf2 round-trip actually validates. Make the strategy generate INFO/FORMAT *values* across the full classic Number×Type matrix and multiallelic records (exercising A/R/G + Number=G end-to-end), round-trip those values through cyvcf2, and add serializer percent-encoding + a reference-aware round-trip.
 
-**Branch:** `impl/vcforge` (continues the v0.1 foundation; 59 tests passing).
+**Branch:** `impl/vcfixture` (continues the v0.1 foundation; 59 tests passing).
 
 ## Empirically-established cyvcf2 decode rules (from a probe of the current library)
 These are FACTS to build against — do not re-derive:
@@ -18,17 +18,17 @@ These are FACTS to build against — do not re-derive:
 
 ## Task P1: Field-value generation strategy
 
-**Files:** Modify `src/vcforge/strategies.py`; Test `tests/test_field_value.py`
+**Files:** Modify `src/vcfixture/strategies.py`; Test `tests/test_field_value.py`
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
 # tests/test_field_value.py
 from hypothesis import given, settings, strategies as st
-from vcforge import strategies as S
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
-from vcforge._spec.fielddef import FieldDef
+from vcfixture import strategies as S
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
+from vcfixture._spec.fielddef import FieldDef
 
 _SAFE = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 
@@ -75,7 +75,7 @@ def test_field_value_string_is_safe_alphabet(data):
 
 Run: `.venv/bin/python -m pytest tests/test_field_value.py -q`
 
-- [ ] **Step 3: Add to `src/vcforge/strategies.py`** (append; keep existing code):
+- [ ] **Step 3: Add to `src/vcfixture/strategies.py`** (append; keep existing code):
 
 ```python
 # --- field-value generation (for the Number x Type matrix) ------------------
@@ -119,7 +119,7 @@ def field_value(draw, fielddef: FieldDef, n_alt: int, ploidy: int):
 
 ## Task P2: Serializer percent-encoding for String/Character values
 
-**Files:** Modify `src/vcforge/serialize.py`; Test add to `tests/test_serialize.py`
+**Files:** Modify `src/vcfixture/serialize.py`; Test add to `tests/test_serialize.py`
 
 VCF requires reserved characters in String/Character INFO/FORMAT values to be percent-encoded. Encode: `%`→`%25`, `:`→`%3A`, `;`→`%3B`, `=`→`%3D`, `,`→`%2C`, `\r`→`%0D`, `\n`→`%0A`, `\t`→`%09`. (`%` MUST be encoded first.) Only str values are encoded; numbers/Genotype are untouched.
 
@@ -127,7 +127,7 @@ VCF requires reserved characters in String/Character INFO/FORMAT values to be pe
 
 ```python
 def test_percent_encoding_of_reserved_chars():
-    from vcforge.serialize import _encode, _fmt_scalar
+    from vcfixture.serialize import _encode, _fmt_scalar
     assert _encode("a;b") == "a%3Bb"
     assert _encode("a:b,c=d") == "a%3Ab%2Cc%3Dd"
     assert _encode("100%") == "100%25"           # % encoded
@@ -140,7 +140,7 @@ def test_percent_encoding_of_reserved_chars():
 
 - [ ] **Step 2: Run, confirm FAIL.** `.venv/bin/python -m pytest tests/test_serialize.py::test_percent_encoding_of_reserved_chars -q`
 
-- [ ] **Step 3: Edit `src/vcforge/serialize.py`** — add `_encode` and apply it to str values in `_fmt_scalar`:
+- [ ] **Step 3: Edit `src/vcfixture/serialize.py`** — add `_encode` and apply it to str values in `_fmt_scalar`:
 
 ```python
 # Order matters: '%' must be replaced first.
@@ -179,7 +179,7 @@ def _fmt_scalar(v: Any) -> str:
 
 ## Task P3: Multiallelic generation in `documents()`
 
-**Files:** Modify `src/vcforge/strategies.py`; Test add to `tests/test_strategies.py`
+**Files:** Modify `src/vcfixture/strategies.py`; Test add to `tests/test_strategies.py`
 
 Make `documents()` draw `n_alt` in 1..3, build that many ALTs (mixed classes, but skip a 2nd `*` — at most one spanning deletion and only as the last alt), and draw GT allele indices in `0..n_alt`. Existing single-ALT behavior is the n_alt==1 case.
 
@@ -191,7 +191,7 @@ Make `documents()` draw `n_alt` in 1..3, build that many ALTs (mixed classes, bu
 def test_documents_can_be_multiallelic(doc):
     # Over many examples at least one record should have >1 ALT.
     # (Property: every record's GT indices never exceed its n_alt.)
-    from vcforge.genotype import Genotype
+    from vcfixture.genotype import Genotype
     for rec in doc.records:
         n_alt = len(rec.alts)
         for s in rec.samples:
@@ -204,7 +204,7 @@ def test_documents_can_be_multiallelic(doc):
 
 - [ ] **Step 2: Run, confirm FAIL** (`documents()` has no `max_alt` kwarg).
 
-- [ ] **Step 3: Edit `documents()` in `src/vcforge/strategies.py`.** Replace the record loop so it draws `n_alt` and multiple alts. Reference implementation:
+- [ ] **Step 3: Edit `documents()` in `src/vcfixture/strategies.py`.** Replace the record loop so it draws `n_alt` and multiple alts. Reference implementation:
 
 ```python
 @st.composite
@@ -252,11 +252,11 @@ NOTE: `_ref_alt` returns `(ref, alt)` but here we only use its `alt`; REF is cho
 
 ## Task P4: Matrix round-trip through cyvcf2 (the headline)
 
-**Files:** Modify `src/vcforge/strategies.py` (add `documents_with_fields`); Test `tests/test_matrix_roundtrip.py`
+**Files:** Modify `src/vcfixture/strategies.py` (add `documents_with_fields`); Test `tests/test_matrix_roundtrip.py`
 
 Add a strategy that declares a set of INFO + FORMAT fields spanning the Number×Type matrix, populates each record's values via `field_value`, and a round-trip test that compares cyvcf2's decode to truth using the established decode rules.
 
-- [ ] **Step 1: Add `documents_with_fields` to `src/vcforge/strategies.py`:**
+- [ ] **Step 1: Add `documents_with_fields` to `src/vcfixture/strategies.py`:**
 
 ```python
 def _matrix_field_defs():
@@ -324,8 +324,8 @@ import tempfile, os
 import numpy as np
 import pytest
 from hypothesis import given, settings, HealthCheck
-from vcforge import strategies as S
-from vcforge._spec.types import Type
+from vcfixture import strategies as S
+from vcfixture._spec.types import Type
 
 cyvcf2 = pytest.importorskip("cyvcf2")
 
@@ -427,8 +427,8 @@ Validate that a reference-anchored document (REF drawn from a FASTA) round-trips
 # tests/test_reference_roundtrip.py
 import tempfile, os
 import pysam, pytest
-from vcforge.build import VcfBuilder
-from vcforge.reference import Reference
+from vcfixture.build import VcfBuilder
+from vcfixture.reference import Reference
 
 cyvcf2 = pytest.importorskip("cyvcf2")
 

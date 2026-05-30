@@ -1,4 +1,4 @@
-# vcforge — Design
+# vcfixture — Design
 
 **Date:** 2026-05-30
 **Status:** Approved design; ready for implementation planning.
@@ -22,7 +22,7 @@ maintaining many tiny VCFs is a smell. `genoray` derives expected arrays by hand
 from VCF text; `GenVarLoader` computes an oracle via `bcftools norm` + `bcftools
 consensus`.
 
-vcforge cures this by making the generator the source of truth: because it
+vcfixture cures this by making the generator the source of truth: because it
 constructs the VCF, it knows the decoded semantics by construction.
 
 ## Key decisions (from brainstorming)
@@ -224,9 +224,9 @@ Parameters (builder kwargs *or* Hypothesis draws) → `VcfDocument` →
 - Reference mode raises if a drawn REF cannot match the sequence (should not
   occur, since REF is read from the reference).
 
-## Self-validation (how vcforge earns trust)
+## Self-validation (how vcfixture earns trust)
 
-vcforge's own test suite **round-trips every document through an independent
+vcfixture's own test suite **round-trips every document through an independent
 parser** (`pysam`/`cyvcf2`): serialize → parse → assert the third-party decode
 matches our `GroundTruth`. A Hypothesis property test asserts this for arbitrary
 documents. This makes the oracle trustworthy: truth is cross-checked against a

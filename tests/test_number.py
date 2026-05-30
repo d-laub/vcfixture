@@ -1,4 +1,4 @@
-from vcforge._spec.number import Number
+from vcfixture._spec.number import Number
 
 
 def test_header_strings():

@@ -29,11 +29,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # commitizen needs full history + tags
+          # PAT so the bump commit + tag can push to a protected main.
+          token: ${{ secrets.GH_ACTIONS }}
       - name: Bump version and update changelog
         id: cz
         uses: commitizen-tools/commitizen-action@0.27.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GH_ACTIONS }}
           branch: main
           changelog_increment_filename: body.md
       - name: Create GitHub release
@@ -48,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/vcforge
+      url: https://pypi.org/p/vcfixture
     permissions:
       id-token: write # OIDC trusted publishing; no API token needed
     steps:

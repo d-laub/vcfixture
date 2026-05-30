@@ -1,10 +1,10 @@
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from vcforge import strategies as S
-from vcforge._spec.fielddef import FieldDef
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
+from vcfixture import strategies as S
+from vcfixture._spec.fielddef import FieldDef
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
 
 _SAFE = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")
 

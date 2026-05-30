@@ -4,8 +4,8 @@ import tempfile
 import pysam
 import pytest
 
-from vcforge.build import VcfBuilder
-from vcforge.reference import Reference
+from vcfixture.build import VcfBuilder
+from vcfixture.reference import Reference
 
 cyvcf2 = pytest.importorskip("cyvcf2")
 

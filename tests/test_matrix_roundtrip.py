@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 from hypothesis import HealthCheck, given, settings
 
-from vcforge import strategies as S
-from vcforge._spec.number import NumberKind
-from vcforge._spec.types import Type
+from vcfixture import strategies as S
+from vcfixture._spec.number import NumberKind
+from vcfixture._spec.types import Type
 
 cyvcf2 = pytest.importorskip("cyvcf2")
 

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from hypothesis import HealthCheck, given, settings
 
-from vcforge import strategies as S
+from vcfixture import strategies as S
 
 cyvcf2 = pytest.importorskip("cyvcf2")
 

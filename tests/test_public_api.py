@@ -1,4 +1,4 @@
-import vcforge
+import vcfixture
 
 
 def test_public_exports():
@@ -11,4 +11,4 @@ def test_public_exports():
         "Reference",
         "strategies",
     ]:
-        assert hasattr(vcforge, name), f"missing public export: {name}"
+        assert hasattr(vcfixture, name), f"missing public export: {name}"

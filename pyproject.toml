@@ -3,7 +3,7 @@ requires = ["uv_build>=0.11,<0.12"]
 build-backend = "uv_build"
 
 [project]
-name = "vcforge"
+name = "vcfixture"
 version = "0.1.0"
 description = "Generate small VCF (v4.5) test data with decoded ground truth."
 license = "Apache-2.0"
@@ -24,7 +24,7 @@ dev = [
 
 [tool.uv.build-backend]
 module-root = "src"
-module-name = "vcforge"
+module-name = "vcfixture"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

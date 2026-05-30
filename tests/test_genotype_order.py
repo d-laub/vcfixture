@@ -1,4 +1,4 @@
-from vcforge._spec.genotype_order import genotype_ordering
+from vcfixture._spec.genotype_order import genotype_ordering
 
 
 def test_diploid_biallelic():

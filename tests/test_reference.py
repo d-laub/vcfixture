@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pysam
 
-from vcforge.reference import Reference
+from vcfixture.reference import Reference
 
 
 def _make_fasta(tmp_path: Path) -> Path:

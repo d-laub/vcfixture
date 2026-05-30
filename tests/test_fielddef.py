@@ -1,8 +1,8 @@
 import pytest
 
-from vcforge._spec.fielddef import FieldDef
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
+from vcfixture._spec.fielddef import FieldDef
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
 
 
 def test_valid_info_field():

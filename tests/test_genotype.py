@@ -1,4 +1,4 @@
-from vcforge.genotype import Genotype
+from vcfixture.genotype import Genotype
 
 
 def test_parse_phased_diploid():

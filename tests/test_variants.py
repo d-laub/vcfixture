@@ -1,4 +1,4 @@
-from vcforge import variants as v
+from vcfixture import variants as v
 
 
 def test_constructors():

@@ -1,8 +1,8 @@
 from hypothesis import HealthCheck, given, settings
 
-from vcforge import strategies as S
-from vcforge._spec.number import NumberKind
-from vcforge.model import VcfDocument
+from vcfixture import strategies as S
+from vcfixture._spec.number import NumberKind
+from vcfixture.model import VcfDocument
 
 
 def test_all_number_type_combos_table_is_exhaustive():

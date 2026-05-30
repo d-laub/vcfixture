@@ -4,9 +4,9 @@ genoray/tests/test_vcf.py."""
 
 import numpy as np
 
-from vcforge._spec.number import Number
-from vcforge._spec.types import Type
-from vcforge.build import VcfBuilder
+from vcfixture._spec.number import Number
+from vcfixture._spec.types import Type
+from vcfixture.build import VcfBuilder
 
 
 def _genoray_biallelic():
