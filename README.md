@@ -18,4 +18,5 @@ truth = doc.truth()                        # GroundTruth (numpy genotypes, ...)
 doc.write("x.vcf.gz", bgzip=True, index=True)
 ```
 
-See `docs/superpowers/specs/2026-05-30-vcforge-design.md` for the design.
+See `docs/superpowers/specs/2026-05-30-vcforge-design.md` for the design, and
+[CONTRIBUTING.md](CONTRIBUTING.md) for development setup (uv is required).
