@@ -83,7 +83,7 @@ def field_value(draw, fielddef: FieldDef, n_alt: int, ploidy: int):
     return [draw(_scalar_value(fielddef.type)) for _ in range(card)]
 
 @st.composite
-def documents(draw, max_samples: int = 3, max_records: int = 4):
+def documents(draw, max_samples: int = 3, max_records: int = 4, max_alt: int = 1):
     n_samples = draw(st.integers(1, max_samples))
     samples = [f"s{i}" for i in range(n_samples)]
     ploidy = draw(st.integers(1, 2))
@@ -92,9 +92,16 @@ def documents(draw, max_samples: int = 3, max_records: int = 4):
     n_rec = draw(st.integers(1, max_records))
     pos = 1000
     for _ in range(n_rec):
-        klass = draw(st.sampled_from(ALL_VARIANT_CLASSES))
-        ref, alt = draw(_ref_alt(klass))
-        gts = [draw(genotypes(ploidy, n_alt=1)) for _ in samples]
-        b.record("chr1", pos, ref=ref, alt=[alt], gt=gts)
+        n_alt = draw(st.integers(1, max_alt))
+        alts = []
+        for j in range(n_alt):
+            klass = draw(st.sampled_from(ALL_VARIANT_CLASSES))
+            if klass == "SPANNING_DEL" and j != n_alt - 1:
+                klass = "SNP"
+            _, alt = draw(_ref_alt(klass))
+            alts.append(alt)
+        ref = draw(st.sampled_from(_BASES))
+        gts = [draw(genotypes(ploidy, n_alt=n_alt)) for _ in samples]
+        b.record("chr1", pos, ref=ref, alt=alts, gt=gts)
         pos += draw(st.integers(1, 50))
     return b.build()

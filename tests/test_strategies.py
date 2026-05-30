@@ -23,3 +23,14 @@ def test_documents_are_well_formed(doc: VcfDocument):
     t = doc.truth()
     assert t.genotypes.shape[0] == len(doc.records)
     assert doc.render().startswith("##fileformat=")
+
+@settings(max_examples=80, suppress_health_check=[HealthCheck.too_slow])
+@given(S.documents(max_alt=3))
+def test_documents_can_be_multiallelic(doc):
+    from vcforge.genotype import Genotype
+    for rec in doc.records:
+        n_alt = len(rec.alts)
+        for s in rec.samples:
+            gt = s["GT"]
+            for a in gt.alleles:
+                assert a is None or a <= n_alt
