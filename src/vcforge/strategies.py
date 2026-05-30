@@ -5,6 +5,7 @@ from .genotype import Genotype
 from .variants import (snp, mnp, insertion, deletion, delins, spanning_deletion)
 from ._spec.number import Number, NumberKind
 from ._spec.types import Type
+from ._spec.fielddef import FieldDef
 
 def _build_number_type_combos():
     numbers = [Number.ONE, Number.fixed(2), Number.A, Number.R, Number.G,
@@ -55,6 +56,31 @@ def genotypes(draw, ploidy: int, n_alt: int, missing_rate: float = 0.1):
     phased = draw(st.booleans())
     sep = "|" if phased else "/"
     return sep.join(alleles)
+
+_SAFE_ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+@st.composite
+def _scalar_value(draw, typ: Type):
+    if typ is Type.INTEGER:
+        return draw(st.integers(min_value=-1000, max_value=1000))
+    if typ is Type.FLOAT:
+        return draw(st.floats(min_value=-1e6, max_value=1e6,
+                              allow_nan=False, allow_infinity=False, width=32))
+    if typ is Type.CHARACTER:
+        return draw(st.sampled_from(_SAFE_ALNUM))
+    return draw(st.text(alphabet=_SAFE_ALNUM, min_size=1, max_size=6))
+
+@st.composite
+def field_value(draw, fielddef: FieldDef, n_alt: int, ploidy: int):
+    """A spec-valid value for `fielddef` at a record with n_alt/ploidy.
+    Flag -> True. Otherwise a list of `cardinality` scalars (Number=. picks a
+    small random count). Safe alphabets / float32-exact floats."""
+    if fielddef.type is Type.FLAG:
+        return True
+    card = fielddef.number.cardinality(n_alt, ploidy)
+    if card is None:
+        card = draw(st.integers(min_value=1, max_value=3))
+    return [draw(_scalar_value(fielddef.type)) for _ in range(card)]
 
 @st.composite
 def documents(draw, max_samples: int = 3, max_records: int = 4):
