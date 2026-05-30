@@ -1,33 +1,41 @@
-# Hooks run the uv-managed tools (versions pinned in uv.lock) via `uv run`,
-# so the environment is identical to local/CI without separate pin maintenance.
+# Run with prek (`uv run prek run --all-files`); installed via `uv run prek install`.
+# Ruff and commitizen use their official public hook repos, pinned to the same
+# versions as the uv dev group. pyrefly stays a local hook because it needs the
+# project environment activated (uv run); it cannot run in an isolated hook env.
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
-  - repo: local
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.15
     hooks:
       - id: ruff-check
-        name: ruff check
-        entry: uv run ruff check --force-exclude --fix
-        language: system
-        types_or: [python, pyi]
-        require_serial: true
-
+        args: [--fix]
       - id: ruff-format
-        name: ruff format
-        entry: uv run ruff format --force-exclude
-        language: system
-        types_or: [python, pyi]
-        require_serial: true
 
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.16.3
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  - repo: local
+    hooks:
       - id: pyrefly
         name: pyrefly
         entry: uv run pyrefly check
         language: system
         types: [python]
         pass_filenames: false
-
-      - id: commitizen-check
-        name: commitizen check
-        entry: uv run cz check --commit-msg-file
-        language: system
-        stages: [commit-msg]
