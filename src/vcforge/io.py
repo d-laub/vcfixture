@@ -4,16 +4,17 @@ from pathlib import Path
 
 import pysam
 
+from ._typing import StrPath
 from .model import VcfDocument
 
 
-def write_text(doc: VcfDocument, path) -> Path:
+def write_text(doc: VcfDocument, path: StrPath) -> Path:
     p = Path(path)
     p.write_text(doc.render())
     return p
 
 
-def write_bgzip(doc: VcfDocument, path, *, index: bool = True) -> Path:
+def write_bgzip(doc: VcfDocument, path: StrPath, *, index: bool = True) -> Path:
     p = Path(path)
     if p.suffix != ".gz":
         p = p.with_suffix(p.suffix + ".gz")

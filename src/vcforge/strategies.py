@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from hypothesis import strategies as st
+from hypothesis.strategies import DrawFn
 
 from ._spec.fielddef import FieldDef
 from ._spec.number import Number
 from ._spec.types import Type
 from .build import VcfBuilder
+from .model import VcfDocument
 from .variants import deletion, delins, insertion, mnp, snp, spanning_deletion
 
 
@@ -31,7 +33,7 @@ _BASES = "ACGT"
 
 
 @st.composite
-def _ref_alt(draw, klass: str):
+def _ref_alt(draw: DrawFn, klass: str) -> tuple[str, str]:
     b = draw(st.sampled_from(_BASES))
     b2 = draw(st.sampled_from(_BASES))
     if klass == "SNP":
@@ -52,7 +54,7 @@ def _ref_alt(draw, klass: str):
 
 
 @st.composite
-def genotypes(draw, ploidy: int, n_alt: int, missing_rate: float = 0.1):
+def genotypes(draw: DrawFn, ploidy: int, n_alt: int, missing_rate: float = 0.1) -> str:
     alleles = []
     for _ in range(ploidy):
         if draw(st.floats(0, 1)) < missing_rate:
@@ -68,7 +70,7 @@ _SAFE_ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
 
 @st.composite
-def _scalar_value(draw, typ: Type):
+def _scalar_value(draw: DrawFn, typ: Type) -> int | float | str:
     if typ is Type.INTEGER:
         return draw(st.integers(min_value=-1000, max_value=1000))
     if typ is Type.FLOAT:
@@ -87,7 +89,9 @@ def _scalar_value(draw, typ: Type):
 
 
 @st.composite
-def field_value(draw, fielddef: FieldDef, n_alt: int, ploidy: int):
+def field_value(
+    draw: DrawFn, fielddef: FieldDef, n_alt: int, ploidy: int
+) -> bool | list[int | float | str]:
     """A spec-valid value for `fielddef` at a record with n_alt/ploidy.
     Flag -> True. Otherwise a list of `cardinality` scalars (Number=. picks a
     small random count). Safe alphabets / float32-exact floats."""
@@ -99,9 +103,10 @@ def field_value(draw, fielddef: FieldDef, n_alt: int, ploidy: int):
     return [draw(_scalar_value(fielddef.type)) for _ in range(card)]
 
 
-def _matrix_field_defs():
+def _matrix_field_defs() -> tuple[list[FieldDef], list[FieldDef]]:
     """One INFO and one FORMAT FieldDef per classic combo (Flag only as INFO)."""
-    info_defs, format_defs = [], []
+    info_defs: list[FieldDef] = []
+    format_defs: list[FieldDef] = []
     numbers = [
         ("1", Number.ONE),
         ("2", Number.fixed(2)),
@@ -129,8 +134,8 @@ MATRIX_INFO_DEFS, MATRIX_FORMAT_DEFS = _matrix_field_defs()
 
 @st.composite
 def documents_with_fields(
-    draw, max_samples: int = 3, max_records: int = 3, max_alt: int = 3
-):
+    draw: DrawFn, max_samples: int = 3, max_records: int = 3, max_alt: int = 3
+) -> VcfDocument:
     n_samples = draw(st.integers(1, max_samples))
     samples = [f"s{i}" for i in range(n_samples)]
     ploidy = draw(st.integers(1, 2))
@@ -162,13 +167,26 @@ def documents_with_fields(
             fmt[fd.id] = [
                 draw(field_value(fd, n_alt=n_alt, ploidy=ploidy)) for _ in samples
             ]
-        b.record("chr1", pos, ref=ref, alt=alts, gt=gts, info=info, **fmt)
+        b.record(
+            "chr1",
+            pos,
+            ref=ref,
+            alt=alts,
+            gt=gts,
+            info=info,
+            # FORMAT field IDs never collide with record()'s named keyword
+            # params (ids/qual/filter), but the checker can't know that when
+            # unpacking a str-keyed dict, so it flags a spurious type clash.
+            **fmt,  # pyrefly: ignore[bad-argument-type]
+        )
         pos += draw(st.integers(1, 50))
     return b.build()
 
 
 @st.composite
-def documents(draw, max_samples: int = 3, max_records: int = 4, max_alt: int = 1):
+def documents(
+    draw: DrawFn, max_samples: int = 3, max_records: int = 4, max_alt: int = 1
+) -> VcfDocument:
     n_samples = draw(st.integers(1, max_samples))
     samples = [f"s{i}" for i in range(n_samples)]
     ploidy = draw(st.integers(1, 2))

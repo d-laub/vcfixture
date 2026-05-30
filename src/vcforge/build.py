@@ -1,16 +1,28 @@
 from __future__ import annotations
 
-from typing import Any
+from collections.abc import Iterable, Mapping, Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from ._spec.fielddef import FieldDef
-from ._spec.number import NumberKind
+from ._spec.number import Number, NumberKind
 from ._spec.reserved import reserved
+from ._spec.types import Type
+from ._typing import StrPath
 from .genotype import Genotype
 from .model import ContigDef, Record, VcfDocument
 
+if TYPE_CHECKING:
+    from .truth import GroundTruth
+
 
 class VcfBuilder:
-    def __init__(self, samples, contigs, fileformat: str = "VCFv4.5"):
+    def __init__(
+        self,
+        samples: Iterable[str],
+        contigs: Iterable[tuple[str, int | None]],
+        fileformat: str = "VCFv4.5",
+    ):
         self._samples = tuple(samples)
         self._contigs = tuple(ContigDef(c[0], c[1]) for c in contigs)
         self._fileformat = fileformat
@@ -19,11 +31,23 @@ class VcfBuilder:
         self._filter_defs: list[tuple[str, str]] = []
         self._records: list[Record] = []
 
-    def info(self, id, number=None, type=None, description=None) -> VcfBuilder:
+    def info(
+        self,
+        id: str,
+        number: Number | None = None,
+        type: Type | None = None,
+        description: str | None = None,
+    ) -> VcfBuilder:
         self._info_defs[id] = self._make_def(id, number, type, description, "INFO")
         return self
 
-    def fmt(self, id, number=None, type=None, description=None) -> VcfBuilder:
+    def fmt(
+        self,
+        id: str,
+        number: Number | None = None,
+        type: Type | None = None,
+        description: str | None = None,
+    ) -> VcfBuilder:
         self._format_defs[id] = self._make_def(id, number, type, description, "FORMAT")
         return self
 
@@ -32,7 +56,13 @@ class VcfBuilder:
         return self
 
     @staticmethod
-    def _make_def(id, number, type, description, kind) -> FieldDef:
+    def _make_def(
+        id: str,
+        number: Number | None,
+        type: Type | None,
+        description: str | None,
+        kind: str,
+    ) -> FieldDef:
         if number is None or type is None:
             try:
                 return reserved(id, kind)
@@ -45,17 +75,17 @@ class VcfBuilder:
 
     def record(
         self,
-        chrom,
-        pos,
+        chrom: str,
+        pos: int,
         *,
-        ref,
-        alt,
-        ids=None,
-        qual=None,
-        filter=None,
-        gt=None,
-        info=None,
-        **fmt_fields,
+        ref: str,
+        alt: Sequence[str],
+        ids: Iterable[str] | None = None,
+        qual: float | None = None,
+        filter: Iterable[str] | None = None,
+        gt: Sequence[str] | None = None,
+        info: Mapping[str, object] | None = None,
+        **fmt_fields: Sequence[object],
     ) -> VcfBuilder:
         alts = tuple(alt)
         n_alt = len(alts)
@@ -145,8 +175,8 @@ class VcfBuilder:
     def render(self) -> str:
         return self.build().render()
 
-    def truth(self):
+    def truth(self) -> GroundTruth:
         return self.build().truth()
 
-    def write(self, path, **kw):
-        return self.build().write(path, **kw)
+    def write(self, path: StrPath, *, bgzip: bool = False, index: bool = False) -> Path:
+        return self.build().write(path, bgzip=bgzip, index=index)

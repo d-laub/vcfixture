@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import pysam
 
+from ._typing import StrPath
+
 _BASES = "ACGT"
 
 
@@ -12,7 +14,7 @@ class Reference:
     Hypothesis supplies randomness by choosing those arguments.
     """
 
-    def __init__(self, fasta_path):
+    def __init__(self, fasta_path: StrPath):
         self._fa = pysam.FastaFile(str(fasta_path))
 
     def base(self, contig: str, pos0: int) -> str:
@@ -22,8 +24,16 @@ class Reference:
         return self._fa.fetch(contig, start0, start0 + length).upper()
 
     def draw_ref_alt(
-        self, contig, pos0, klass, *, alt_index=1, del_len=1, ins_seq="T", mnp_len=2
-    ):
+        self,
+        contig: str,
+        pos0: int,
+        klass: str,
+        *,
+        alt_index: int = 1,
+        del_len: int = 1,
+        ins_seq: str = "T",
+        mnp_len: int = 2,
+    ) -> tuple[str, list[str]]:
         if klass == "SNP":
             r = self.base(contig, pos0)
             alt = _BASES[(_BASES.index(r) + alt_index) % 4]

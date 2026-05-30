@@ -41,6 +41,7 @@ select = ["E", "F", "I", "B", "UP"]
 # are exercised at runtime by pytest, so they are out of the type-check scope.
 [tool.pyrefly]
 project-includes = ["src"]
+preset = "strict"
 
 [tool.commitizen]
 name = "cz_conventional_commits"

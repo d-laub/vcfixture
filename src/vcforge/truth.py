@@ -19,8 +19,8 @@ class GroundTruth:
     variant_class: list[str]
     genotypes: np.ndarray  # (records, samples, ploidy) int32, -1 missing
     phasing: np.ndarray  # (records, samples) bool (fully phased)
-    info: list[dict]  # per record: id -> decoded value(s)
-    format: list[list[dict]]  # per record, per sample: id -> value(s)
+    info: list[dict[str, object]]  # per record: id -> decoded value(s)
+    format: list[list[dict[str, object]]]  # per record, per sample: id -> value(s)
 
 
 def derive_truth(doc: VcfDocument) -> GroundTruth:
@@ -34,8 +34,8 @@ def derive_truth(doc: VcfDocument) -> GroundTruth:
     ref: list[str] = []
     alts: list[list[str]] = []
     vclass: list[str] = []
-    info: list[dict] = []
-    fmt: list[list[dict]] = []
+    info: list[dict[str, object]] = []
+    fmt: list[list[dict[str, object]]] = []
 
     for ri, rec in enumerate(doc.records):
         pos[ri] = rec.pos
@@ -43,7 +43,7 @@ def derive_truth(doc: VcfDocument) -> GroundTruth:
         alts.append(list(rec.alts))
         vclass.append(record_class(rec.ref, rec.alts))
         info.append(dict(rec.info))
-        per_sample: list[dict] = []
+        per_sample: list[dict[str, object]] = []
         for si, sample in enumerate(rec.samples):
             gt = sample.get("GT")
             if isinstance(gt, Genotype):

@@ -2,10 +2,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from ._spec.fielddef import FieldDef
+from ._typing import StrPath
 from .genotype import Genotype
+
+if TYPE_CHECKING:
+    from .truth import GroundTruth
 
 
 @dataclass(frozen=True)
@@ -61,12 +66,12 @@ class VcfDocument:
 
         return render_document(self)
 
-    def truth(self):
+    def truth(self) -> GroundTruth:
         from .truth import derive_truth
 
         return derive_truth(self)
 
-    def write(self, path, *, bgzip: bool = False, index: bool = False):
+    def write(self, path: StrPath, *, bgzip: bool = False, index: bool = False) -> Path:
         from . import io
 
         if bgzip:
