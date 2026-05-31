@@ -9,12 +9,11 @@ description = "Generate small VCF (v4.5) test data with decoded ground truth."
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.24", "pysam>=0.22"]
+dependencies = ["numpy>=1.24", "pysam>=0.22", "hypothesis>=6.100"]
 
 [dependency-groups]
 dev = [
     "pytest>=8",
-    "hypothesis>=6.100",
     "cyvcf2>=0.30",
     "ruff>=0.6",
     "pyrefly>=0.16",

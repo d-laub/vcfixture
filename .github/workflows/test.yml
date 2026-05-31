@@ -53,3 +53,23 @@ jobs:
       - run: uv sync
       - name: Pytest
         run: uv run pytest -q
+
+  smoke:
+    name: Clean-room wheel import
+    runs-on: ubuntu-latest
+    # Builds the wheel and imports it in a fresh venv with ONLY runtime deps
+    # (no dev group). Catches any src/ module reaching for a dependency that
+    # isn't declared in [project].dependencies — a bug the dev-synced test job
+    # above cannot see, since it installs dev deps.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv build
+      - name: Import from clean runtime-only venv
+        run: |
+          uv venv /tmp/clean
+          uv pip install --python /tmp/clean dist/*.whl
+          /tmp/clean/bin/python -c 'import vcfixture, vcfixture.strategies'
