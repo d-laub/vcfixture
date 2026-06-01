@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pysam
 
+from ._repr import CompactRepr, override
 from ._typing import StrPath
 
 _BASES = "ACGT"
@@ -88,7 +89,7 @@ class Reference:
 
 
 @dataclass(frozen=True)
-class RepeatFeature:
+class RepeatFeature(CompactRepr):
     """A tandem repeat planted into a reference, for provenance."""
 
     contig: str
@@ -100,13 +101,22 @@ class RepeatFeature:
     def length(self) -> int:
         return len(self.motif) * self.count
 
+    @override
+    def __repr__(self) -> str:
+        return f"RepeatFeature({self.contig}@{self.pos0} {self.motif}×{self.count})"
+
 
 @dataclass(frozen=True)
-class ReferenceSpec:
+class ReferenceSpec(CompactRepr):
     """Immutable in-memory reference: contig sequences + planted repeats."""
 
     contigs: tuple[tuple[str, str], ...]  # (id, sequence)
     repeats: tuple[RepeatFeature, ...] = ()
+
+    @override
+    def __repr__(self) -> str:
+        contigs = ", ".join(f"{cid}:{len(seq)}bp" for cid, seq in self.contigs)
+        return f"ReferenceSpec(contigs=[{contigs}], repeats={len(self.repeats)})"
 
     def _seq_for(self, contig: str) -> str:
         for cid, seq in self.contigs:

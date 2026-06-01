@@ -5,6 +5,7 @@ from vcfixture._spec.number import Number
 from vcfixture._spec.types import Type
 from vcfixture.genotype import Genotype
 from vcfixture.model import ContigDef, Record, VcfDocument
+from vcfixture.reference import ReferenceSpec, RepeatFeature
 
 
 def test_number_singletons_not_in_dataclass_fields():
@@ -115,3 +116,23 @@ def test_vcfdocument_repr_compact():
         records=(_make_record(), _make_record()),
     )
     assert repr(doc) == "VcfDocument(VCFv4.5 samples=2 records=2 info=0 format=1)"
+
+
+def test_repeatfeature_repr_compact():
+    rf = RepeatFeature(contig="chr1", pos0=10, motif="AT", count=3)
+    assert repr(rf) == "RepeatFeature(chr1@10 AT×3)"
+
+
+def test_referencespec_repr_compact():
+    spec = ReferenceSpec(
+        contigs=(("chr1", "A" * 200),),
+        repeats=(RepeatFeature(contig="chr1", pos0=10, motif="AT", count=3),),
+    )
+    assert repr(spec) == "ReferenceSpec(contigs=[chr1:200bp], repeats=1)"
+
+
+def test_referencespec_repr_pretty_no_full_sequence():
+    spec = ReferenceSpec(contigs=(("chr1", "ACGT" * 50),), repeats=())
+    out = pretty(spec)
+    assert out == "ReferenceSpec(contigs=[chr1:200bp], repeats=0)"
+    assert "ACGTACGT" not in out
