@@ -21,6 +21,7 @@ class GroundTruth:
     phasing: np.ndarray  # (records, samples) bool (fully phased)
     info: list[dict[str, object]]  # per record: id -> decoded value(s)
     format: list[list[dict[str, object]]]  # per record, per sample: id -> value(s)
+    labels: list[frozenset[str]]  # per record
 
 
 def derive_truth(doc: VcfDocument) -> GroundTruth:
@@ -36,6 +37,7 @@ def derive_truth(doc: VcfDocument) -> GroundTruth:
     vclass: list[str] = []
     info: list[dict[str, object]] = []
     fmt: list[list[dict[str, object]]] = []
+    labels: list[frozenset[str]] = []
 
     for ri, rec in enumerate(doc.records):
         pos[ri] = rec.pos
@@ -52,6 +54,7 @@ def derive_truth(doc: VcfDocument) -> GroundTruth:
                 phasing[ri, si] = gt.is_phased
             per_sample.append({k: v for k, v in sample.items() if k != "GT"})
         fmt.append(per_sample)
+        labels.append(rec.labels)
 
     return GroundTruth(
         samples=doc.samples,
@@ -64,4 +67,5 @@ def derive_truth(doc: VcfDocument) -> GroundTruth:
         phasing=phasing,
         info=info,
         format=fmt,
+        labels=labels,
     )

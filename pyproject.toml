@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "vcfixture"
-version = "0.2.1"
+version = "0.3.0"
 description = "Generate small VCF (v4.5) test data with decoded ground truth."
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -44,7 +44,7 @@ preset = "strict"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.2.1"
+version = "0.3.0"
 tag_format = "v$version"
 version_files = ["pyproject.toml:^version"]
 update_changelog_on_bump = true

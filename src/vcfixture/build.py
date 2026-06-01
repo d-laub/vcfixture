@@ -85,6 +85,7 @@ class VcfBuilder:
         filter: Iterable[str] | None = None,
         gt: Sequence[str] | None = None,
         info: Mapping[str, object] | None = None,
+        labels: Iterable[str] | None = None,
         **fmt_fields: Sequence[object],
     ) -> VcfBuilder:
         alts = tuple(alt)
@@ -157,6 +158,7 @@ class VcfBuilder:
                 info=info_dict,
                 fmt_keys=tuple(fmt_keys),
                 samples=tuple(samples),
+                labels=frozenset(labels) if labels else frozenset(),
             )
         )
         return self

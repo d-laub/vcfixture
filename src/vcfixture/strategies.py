@@ -8,6 +8,8 @@ from ._spec.number import Number
 from ._spec.types import Type
 from .build import VcfBuilder
 from .model import VcfDocument
+from .reference import ReferenceBuilder, ReferenceSpec
+from .truth import GroundTruth
 from .variants import deletion, delins, insertion, mnp, snp, spanning_deletion
 
 
@@ -184,9 +186,210 @@ def documents_with_fields(
 
 
 @st.composite
-def documents(
-    draw: DrawFn, max_samples: int = 3, max_records: int = 4, max_alt: int = 1
+def references(
+    draw: DrawFn,
+    *,
+    max_contigs: int = 2,
+    max_contig_len: int = 2000,
+    max_repeats: int = 3,
+) -> ReferenceSpec:
+    """Draw a small reference-consistent ``ReferenceSpec`` with optional,
+    non-overlapping planted tandem repeats (advertised on ``spec.repeats``)."""
+    seed = draw(st.integers(min_value=0, max_value=2**32 - 1))
+    rb = ReferenceBuilder(seed=seed)
+
+    n_contigs = draw(st.integers(1, max_contigs))
+    lengths: dict[str, int] = {}
+    for i in range(n_contigs):
+        cid = f"chr{i + 1}"
+        length = draw(st.integers(200, max_contig_len))
+        rb.add_contig(cid, length)
+        lengths[cid] = length
+
+    # Plant repeats with a per-contig cursor so they never overlap.
+    cursor = {cid: 50 for cid in lengths}
+    n_rep = draw(st.integers(0, max_repeats))
+    for _ in range(n_rep):
+        cid = draw(st.sampled_from(list(lengths)))
+        motif = draw(st.text(_BASES, min_size=1, max_size=3))
+        count = draw(st.integers(3, 6))
+        rlen = len(motif) * count
+        pos0 = cursor[cid]
+        if pos0 + rlen + 20 > lengths[cid]:
+            continue
+        rb.tandem_repeat(cid, pos0, motif, count)
+        cursor[cid] = pos0 + rlen + draw(st.integers(20, 60))
+
+    return rb.build()
+
+
+_DEFAULT_LABELS = {
+    "multiallelic": "multiallelic",
+    "non_atomic": "non_atomic",
+    "off_anchor": "off_anchor",
+    "tandem_repeat": "tandem_repeat",
+}
+
+
+@st.composite
+def _reference_documents(
+    draw: DrawFn,
+    reference: ReferenceSpec,
+    violations: frozenset[str],
+    label_overrides: dict[str, str] | None,
+    max_samples: int,
+    max_records: int,
 ) -> VcfDocument:
+    def lbl(key: str) -> str:
+        base = _DEFAULT_LABELS[key]
+        return (label_overrides or {}).get(base, base)
+
+    n_samples = draw(st.integers(1, max_samples))
+    samples = [f"s{i}" for i in range(n_samples)]
+    ploidy = draw(st.integers(1, 2))
+
+    # Prefer a contig that carries a repeat when non_left_aligned is requested.
+    repeat_contigs = sorted({rf.contig for rf in reference.repeats})
+    if "non_left_aligned" in violations and repeat_contigs:
+        contig = draw(st.sampled_from(repeat_contigs))
+    else:
+        contig = draw(st.sampled_from([cid for cid, _ in reference.contigs]))
+    clen = reference.length(contig)
+    contig_repeats = [rf for rf in reference.repeats if rf.contig == contig]
+
+    b = VcfBuilder(
+        samples=samples,
+        contigs=[(cid, reference.length(cid)) for cid, _ in reference.contigs],
+    ).fmt("GT")
+
+    enabled = [
+        v for v in ("multiallelic", "non_atomic", "non_left_aligned") if v in violations
+    ]
+
+    n_rec = draw(st.integers(1, max_records))
+    cursor = 10  # low start so planted repeats (pos0 >= 50) are reachable ahead
+    for _ in range(n_rec):
+        if cursor + 30 >= clen:
+            break
+        # Decide what kind of record to emit. Anchor `a` defaults to the cursor;
+        # only a forward jump (off_anchor) may move it ahead, never behind, so
+        # records stay position-sorted.
+        a = cursor
+        kind = (
+            draw(st.sampled_from(["canonical", *enabled])) if enabled else "canonical"
+        )
+
+        # off_anchor needs a planted repeat strictly AHEAD of the cursor; if none
+        # is available, fall back to a canonical record.
+        usable_repeats = [rf for rf in contig_repeats if rf.pos0 >= cursor]
+        if kind == "non_left_aligned" and not usable_repeats:
+            kind = "canonical"
+
+        labels: set[str] = set()
+        if kind == "non_left_aligned":
+            rf = draw(st.sampled_from(usable_repeats))
+            mlen = len(rf.motif)
+            # Anchor inside the repeat (copy index k>=1): a non-left-aligned
+            # representation of deleting one motif unit. a = rf.pos0 + mlen*k - 1
+            # is always >= cursor (rf.pos0 >= cursor), so order is preserved.
+            k = draw(st.integers(1, max(1, rf.count - 1)))
+            a = rf.pos0 + mlen * k - 1
+            ref = reference.seq(contig, a, 1 + mlen)
+            alts = [ref[0]]
+            labels = {lbl("off_anchor"), lbl("tandem_repeat")}
+        elif kind == "multiallelic":
+            r = reference.base(contig, a)
+            others = [x for x in "ACGT" if x != r]
+            i = draw(st.integers(0, len(others) - 1))
+            alt1 = others[i]
+            alt2 = others[(i + 1) % len(others)]
+            ref, alts = r, [alt1, alt2]
+            labels = {lbl("multiallelic")}
+        elif kind == "non_atomic":
+            ref, alts = reference.draw_ref_alt(contig, a, "MNP", mnp_len=2)
+            labels = {lbl("non_atomic")}
+        else:  # canonical: SNP, or a left-aligned 1bp DEL when context allows
+            want_del = draw(st.booleans())
+            if (
+                want_del
+                and a + 2 < clen
+                and reference.base(contig, a) != reference.base(contig, a + 1)
+            ):
+                ref = reference.seq(contig, a, 2)  # delete the differing next base
+                alts = [ref[0]]
+            else:
+                ref, alts = reference.draw_ref_alt(contig, a, "SNP")
+
+        gts = [draw(genotypes(ploidy, n_alt=len(alts))) for _ in samples]
+        b.record(
+            contig,
+            a + 1,  # 1-based POS
+            ref=ref,
+            alt=alts,
+            gt=gts,
+            labels=sorted(labels) if labels else None,
+        )
+        cursor = a + len(ref) + draw(st.integers(20, 60))
+
+    return b.build()
+
+
+@st.composite
+def documents(
+    draw: DrawFn,
+    max_samples: int = 3,
+    max_records: int = 4,
+    max_alt: int = 1,
+    *,
+    reference: ReferenceSpec | None = None,
+    violations: frozenset[str] = frozenset(),
+    label_overrides: dict[str, str] | None = None,
+) -> VcfDocument:
+    """Draw a small ``VcfDocument`` over a synthetic contig.
+
+    Without ``reference``, records are drawn independently: REF alleles are
+    arbitrary single bases and records are not sorted by position.
+
+    When ``reference`` is provided, every REF allele matches the reference
+    sequence at its position and records are emitted in position order.
+    Violation classes may be opted into to intentionally emit non-canonical
+    records alongside the canonical ones.
+
+    Args:
+        max_samples: Upper bound on the number of samples drawn.
+        max_records: Upper bound on the number of variant records drawn.
+        max_alt: Upper bound on the number of ALT alleles per record
+            (ignored when ``reference`` is provided).
+        reference: When given, draws reference-consistent, position-sorted
+            records against this spec.  When ``None``, draws a standalone
+            document over a single synthetic ``chr1`` contig.
+        violations: Set of violation classes to opt into.  Only meaningful
+            when ``reference`` is provided.  Accepted values:
+
+            - ``"multiallelic"`` — emit a record with two ALT alleles;
+              labels the record ``multiallelic``.
+            - ``"non_atomic"`` — emit a 2-bp MNP that could be decomposed;
+              labels the record ``non_atomic``.
+            - ``"non_left_aligned"`` — emit a deletion anchored inside a
+              planted tandem repeat rather than at its leftmost position;
+              labels the record with both ``off_anchor`` and
+              ``tandem_repeat``.
+
+            The full emitted label vocabulary is therefore
+            ``{multiallelic, non_atomic, off_anchor, tandem_repeat}``.
+        label_overrides: Optional mapping from default label strings to
+            replacement strings, applied to every label before it is
+            attached to a record.  Keys must be drawn from the default
+            vocabulary (``multiallelic``, ``non_atomic``, ``off_anchor``,
+            ``tandem_repeat``).
+    """
+    if reference is not None:
+        return draw(
+            _reference_documents(
+                reference, violations, label_overrides, max_samples, max_records
+            )
+        )
+    # --- existing reference-free body continues unchanged below ---
     n_samples = draw(st.integers(1, max_samples))
     samples = [f"s{i}" for i in range(n_samples)]
     ploidy = draw(st.integers(1, 2))
@@ -208,3 +411,35 @@ def documents(
         b.record("chr1", pos, ref=ref, alt=alts, gt=gts)
         pos += draw(st.integers(1, 50))
     return b.build()
+
+
+@st.composite
+def reference_and_documents(
+    draw: DrawFn,
+    *,
+    max_samples: int = 3,
+    max_records: int = 4,
+    violations: frozenset[str] = frozenset(),
+    label_overrides: dict[str, str] | None = None,
+    max_contigs: int = 2,
+    max_contig_len: int = 2000,
+    max_repeats: int = 3,
+) -> tuple[ReferenceSpec, VcfDocument, GroundTruth]:
+    """Draw a consistent ``(ReferenceSpec, VcfDocument, GroundTruth)``."""
+    spec = draw(
+        references(
+            max_contigs=max_contigs,
+            max_contig_len=max_contig_len,
+            max_repeats=max_repeats,
+        )
+    )
+    doc = draw(
+        documents(
+            max_samples=max_samples,
+            max_records=max_records,
+            reference=spec,
+            violations=violations,
+            label_overrides=label_overrides,
+        )
+    )
+    return spec, doc, doc.truth()

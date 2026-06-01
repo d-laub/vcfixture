@@ -6,3 +6,4 @@ build/
 *.egg-info/
 .hypothesis/
 .pytest_cache/
+.worktrees/
