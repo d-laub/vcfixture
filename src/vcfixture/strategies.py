@@ -345,6 +345,44 @@ def documents(
     violations: frozenset[str] = frozenset(),
     label_overrides: dict[str, str] | None = None,
 ) -> VcfDocument:
+    """Draw a small ``VcfDocument`` over a synthetic contig.
+
+    Without ``reference``, records are drawn independently: REF alleles are
+    arbitrary single bases and records are not sorted by position.
+
+    When ``reference`` is provided, every REF allele matches the reference
+    sequence at its position and records are emitted in position order.
+    Violation classes may be opted into to intentionally emit non-canonical
+    records alongside the canonical ones.
+
+    Args:
+        max_samples: Upper bound on the number of samples drawn.
+        max_records: Upper bound on the number of variant records drawn.
+        max_alt: Upper bound on the number of ALT alleles per record
+            (ignored when ``reference`` is provided).
+        reference: When given, draws reference-consistent, position-sorted
+            records against this spec.  When ``None``, draws a standalone
+            document over a single synthetic ``chr1`` contig.
+        violations: Set of violation classes to opt into.  Only meaningful
+            when ``reference`` is provided.  Accepted values:
+
+            - ``"multiallelic"`` — emit a record with two ALT alleles;
+              labels the record ``multiallelic``.
+            - ``"non_atomic"`` — emit a 2-bp MNP that could be decomposed;
+              labels the record ``non_atomic``.
+            - ``"non_left_aligned"`` — emit a deletion anchored inside a
+              planted tandem repeat rather than at its leftmost position;
+              labels the record with both ``off_anchor`` and
+              ``tandem_repeat``.
+
+            The full emitted label vocabulary is therefore
+            ``{multiallelic, non_atomic, off_anchor, tandem_repeat}``.
+        label_overrides: Optional mapping from default label strings to
+            replacement strings, applied to every label before it is
+            attached to a record.  Keys must be drawn from the default
+            vocabulary (``multiallelic``, ``non_atomic``, ``off_anchor``,
+            ``tandem_repeat``).
+    """
     if reference is not None:
         return draw(
             _reference_documents(
