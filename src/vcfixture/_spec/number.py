@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, ClassVar
 
+from .._repr import CompactRepr, override
+
 
 class NumberKind(str, Enum):
     FIXED = "FIXED"
@@ -16,7 +18,7 @@ class NumberKind(str, Enum):
 
 
 @dataclass(frozen=True)
-class Number:
+class Number(CompactRepr):
     kind: NumberKind
     count: int | None = None  # set only for FIXED
 
@@ -44,6 +46,16 @@ class Number:
         if self.kind is NumberKind.FLAG:
             return "0"
         return self.kind.value
+
+    @override
+    def __repr__(self) -> str:
+        if self.kind is NumberKind.FIXED:
+            tok = str(self.count)
+        elif self.kind is NumberKind.FLAG:
+            tok = "FLAG"
+        else:
+            tok = self.kind.value
+        return f"Number({tok})"
 
     def cardinality(self, n_alt: int, ploidy: int) -> int | None:
         k = self.kind

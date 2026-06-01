@@ -879,6 +879,7 @@ dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pysam" },
+    { name = "typing-extensions" },
 ]
 
 [package.dev-dependencies]
@@ -896,6 +897,7 @@ requires-dist = [
     { name = "hypothesis", specifier = ">=6.100" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "pysam", specifier = ">=0.22" },
+    { name = "typing-extensions", specifier = ">=4.4" },
 ]
 
 [package.metadata.requires-dev]
