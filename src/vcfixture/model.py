@@ -36,6 +36,7 @@ class Record:
     info: Mapping[str, Any]  # id -> value(s); Flag -> True
     fmt_keys: tuple[str, ...]  # FORMAT column order
     samples: tuple[Mapping[str, Any], ...]  # per-sample: key -> value(s)/Genotype
+    labels: frozenset[str] = frozenset()
 
     @property
     def n_alt(self) -> int:
