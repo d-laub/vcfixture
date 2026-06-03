@@ -1,5 +1,6 @@
 import numpy as np
 
+from vcfixture.allele import Seq
 from vcfixture.genotype import Genotype
 from vcfixture.model import ContigDef, Record, VcfDocument
 from vcfixture.truth import derive_truth
@@ -11,7 +12,7 @@ def _doc():
         pos=81262,
         ids=None,
         ref="GAT",
-        alts=("A",),
+        alts=(Seq("A"),),
         qual=None,
         filters=None,
         info={"AF": [0.5]},

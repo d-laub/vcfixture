@@ -1,4 +1,5 @@
 from vcfixture import variants as v
+from vcfixture.allele import Seq
 
 
 def test_constructors():
@@ -20,5 +21,5 @@ def test_classify_single_alt():
 
 
 def test_record_class_multiallelic():
-    assert v.record_class("G", ("A", "C")) == "MULTIALLELIC"
-    assert v.record_class("G", ("A",)) == "SNP"
+    assert v.record_class("G", (Seq("A"), Seq("C"))) == "MULTIALLELIC"
+    assert v.record_class("G", (Seq("A"),)) == "SNP"

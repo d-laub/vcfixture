@@ -75,7 +75,7 @@ def _render_sample(rec: Record, sample: Mapping[str, Any]) -> str:
 
 def _render_record(rec: Record) -> str:
     ids = ";".join(rec.ids) if rec.ids else "."
-    alt = ",".join(rec.alts) if rec.alts else "."
+    alt = ",".join(a.render() for a in rec.alts) if rec.alts else "."
     qual = "." if rec.qual is None else _fmt_scalar(rec.qual)
     if rec.filters is None:
         filt = "."

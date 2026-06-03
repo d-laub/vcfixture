@@ -1,6 +1,7 @@
 from vcfixture._spec.fielddef import FieldDef
 from vcfixture._spec.number import Number
 from vcfixture._spec.types import Type
+from vcfixture.allele import Seq
 from vcfixture.genotype import Genotype
 from vcfixture.model import ContigDef, Record, VcfDocument
 from vcfixture.serialize import render_document
@@ -16,7 +17,7 @@ def _doc():
         pos=81262,
         ids=None,
         ref="GAT",
-        alts=("A",),
+        alts=(Seq("A"),),
         qual=None,
         filters=None,
         info={"AF": [0.5], "DB": True},

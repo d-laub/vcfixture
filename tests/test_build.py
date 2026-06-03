@@ -3,6 +3,7 @@ import pytest
 
 from vcfixture._spec.number import Number
 from vcfixture._spec.types import Type
+from vcfixture.allele import Seq
 from vcfixture.build import VcfBuilder
 
 
@@ -16,7 +17,7 @@ def test_build_biallelic_with_dosage():
             "chr1",
             81262,
             ref="GAT",
-            alt=["A"],
+            alt=[Seq("A")],
             gt=["0|1", "1|1"],
             info={"AF": [0.5]},
             DS=[[1.0], [2.0]],
@@ -33,7 +34,7 @@ def test_reserved_field_by_name():
     doc = (
         VcfBuilder(samples=["s1"], contigs=[("chr1", None)])
         .fmt("GT")
-        .record("chr1", 1, ref="A", alt=["T"], gt=["0/1"])
+        .record("chr1", 1, ref="A", alt=[Seq("T")], gt=["0/1"])
         .build()
     )
     assert doc.format_defs[0].id == "GT"
@@ -42,13 +43,13 @@ def test_reserved_field_by_name():
 def test_undefined_format_field_raises():
     b = VcfBuilder(samples=["s1"], contigs=[("chr1", None)]).fmt("GT")
     with pytest.raises(ValueError, match="not declared"):
-        b.record("chr1", 1, ref="A", alt=["T"], gt=["0/1"], DS=[[1.0]])
+        b.record("chr1", 1, ref="A", alt=[Seq("T")], gt=["0/1"], DS=[[1.0]])
 
 
 def test_gt_index_out_of_range_raises():
     b = VcfBuilder(samples=["s1"], contigs=[("chr1", None)]).fmt("GT")
     with pytest.raises(ValueError, match="allele index"):
-        b.record("chr1", 1, ref="A", alt=["T"], gt=["0/5"])
+        b.record("chr1", 1, ref="A", alt=[Seq("T")], gt=["0/5"])
 
 
 def test_cardinality_mismatch_raises():
@@ -58,4 +59,4 @@ def test_cardinality_mismatch_raises():
         .fmt("AD", Number.R, Type.INTEGER)
     )
     with pytest.raises(ValueError, match="cardinality"):
-        b.record("chr1", 1, ref="A", alt=["T"], gt=["0/1"], AD=[[5]])
+        b.record("chr1", 1, ref="A", alt=[Seq("T")], gt=["0/1"], AD=[[5]])

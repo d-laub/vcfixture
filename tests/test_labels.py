@@ -1,4 +1,5 @@
 from vcfixture import VcfBuilder
+from vcfixture.allele import Seq
 
 
 def _builder() -> VcfBuilder:
@@ -6,7 +7,7 @@ def _builder() -> VcfBuilder:
 
 
 def test_labels_default_empty():
-    b = _builder().record("chr1", 10, ref="A", alt=["C"], gt=["0|1"])
+    b = _builder().record("chr1", 10, ref="A", alt=[Seq("C")], gt=["0|1"])
     doc = b.build()
     assert doc.records[0].labels == frozenset()
     assert doc.truth().labels == [frozenset()]
@@ -14,7 +15,7 @@ def test_labels_default_empty():
 
 def test_labels_carried_record_to_truth():
     b = _builder().record(
-        "chr1", 10, ref="A", alt=["C"], gt=["0|1"], labels=["off_anchor", "x"]
+        "chr1", 10, ref="A", alt=[Seq("C")], gt=["0|1"], labels=["off_anchor", "x"]
     )
     doc = b.build()
     assert doc.records[0].labels == frozenset({"off_anchor", "x"})
@@ -23,7 +24,7 @@ def test_labels_carried_record_to_truth():
 
 def test_labels_not_serialized():
     b = _builder().record(
-        "chr1", 10, ref="A", alt=["C"], gt=["0|1"], labels=["off_anchor"]
+        "chr1", 10, ref="A", alt=[Seq("C")], gt=["0|1"], labels=["off_anchor"]
     )
     text = b.build().render()
     assert "off_anchor" not in text

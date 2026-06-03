@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pysam
 
+from vcfixture.allele import Seq
 from vcfixture.build import VcfBuilder
 
 
@@ -9,7 +10,7 @@ def _doc():
     return (
         VcfBuilder(samples=["s1", "s2"], contigs=[("chr1", 100000)])
         .fmt("GT")
-        .record("chr1", 81262, ref="A", alt=["T"], gt=["0|1", "1|1"])
+        .record("chr1", 81262, ref="A", alt=[Seq("T")], gt=["0|1", "1|1"])
         .build()
     )
 

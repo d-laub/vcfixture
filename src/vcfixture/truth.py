@@ -42,7 +42,7 @@ def derive_truth(doc: VcfDocument) -> GroundTruth:
     for ri, rec in enumerate(doc.records):
         pos[ri] = rec.pos
         ref.append(rec.ref)
-        alts.append(list(rec.alts))
+        alts.append([a.render() for a in rec.alts])
         vclass.append(record_class(rec.ref, rec.alts))
         info.append(dict(rec.info))
         per_sample: list[dict[str, object]] = []

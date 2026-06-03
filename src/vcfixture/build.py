@@ -9,6 +9,7 @@ from ._spec.number import Number, NumberKind
 from ._spec.reserved import reserved
 from ._spec.types import Type
 from ._typing import StrPath
+from .allele import Allele
 from .genotype import Genotype
 from .model import ContigDef, Record, VcfDocument
 
@@ -79,7 +80,7 @@ class VcfBuilder:
         pos: int,
         *,
         ref: str,
-        alt: Sequence[str],
+        alt: Sequence[Allele],
         ids: Iterable[str] | None = None,
         qual: float | None = None,
         filter: Iterable[str] | None = None,

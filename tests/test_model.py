@@ -1,4 +1,5 @@
 from vcfixture._spec.reserved import reserved
+from vcfixture.allele import Seq
 from vcfixture.genotype import Genotype
 from vcfixture.model import ContigDef, Record, VcfDocument
 
@@ -9,7 +10,7 @@ def _doc():
         pos=81262,
         ids=None,
         ref="GAT",
-        alts=("A",),
+        alts=(Seq("A"),),
         qual=None,
         filters=None,
         info={},
@@ -33,7 +34,7 @@ def _doc():
 def test_document_is_frozen_and_holds_records():
     doc = _doc()
     assert doc.samples == ("s1", "s2")
-    assert doc.records[0].alts == ("A",)
+    assert doc.records[0].alts == (Seq("A"),)
     assert doc.max_ploidy() == 2
 
 
@@ -43,7 +44,7 @@ def test_ploidy_varies_uses_max():
         1,
         None,
         "A",
-        ("T",),
+        (Seq("T"),),
         None,
         None,
         {},

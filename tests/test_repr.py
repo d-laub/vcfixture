@@ -3,6 +3,7 @@ from hypothesis.vendor.pretty import pretty
 from vcfixture._spec.fielddef import FieldDef
 from vcfixture._spec.number import Number
 from vcfixture._spec.types import Type
+from vcfixture.allele import Seq
 from vcfixture.genotype import Genotype
 from vcfixture.model import ContigDef, Record, VcfDocument
 from vcfixture.reference import ReferenceSpec, RepeatFeature
@@ -64,7 +65,10 @@ def test_contigdef_repr_compact():
     assert repr(ContigDef(id="chr1")) == "ContigDef(chr1)"
 
 
-def _make_record(alts=("T", "G"), labels=frozenset()):
+_DEFAULT_ALTS = (Seq("T"), Seq("G"))
+
+
+def _make_record(alts=_DEFAULT_ALTS, labels=frozenset()):
     return Record(
         chrom="chr1",
         pos=5,

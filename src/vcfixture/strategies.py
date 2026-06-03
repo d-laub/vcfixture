@@ -6,6 +6,7 @@ from hypothesis.strategies import DrawFn
 from ._spec.fielddef import FieldDef
 from ._spec.number import Number
 from ._spec.types import Type
+from .allele import classify_allele
 from .build import VcfBuilder
 from .model import VcfDocument
 from .reference import ReferenceBuilder, ReferenceSpec
@@ -173,7 +174,7 @@ def documents_with_fields(
             "chr1",
             pos,
             ref=ref,
-            alt=alts,
+            alt=[classify_allele(a) for a in alts],
             gt=gts,
             info=info,
             # FORMAT field IDs never collide with record()'s named keyword
@@ -325,7 +326,7 @@ def _reference_documents(
             contig,
             a + 1,  # 1-based POS
             ref=ref,
-            alt=alts,
+            alt=[classify_allele(a) for a in alts],
             gt=gts,
             labels=sorted(labels) if labels else None,
         )
@@ -408,7 +409,7 @@ def documents(
             alts.append(alt)
         ref = draw(st.sampled_from(_BASES))
         gts = [draw(genotypes(ploidy, n_alt=n_alt)) for _ in samples]
-        b.record("chr1", pos, ref=ref, alt=alts, gt=gts)
+        b.record("chr1", pos, ref=ref, alt=[classify_allele(a) for a in alts], gt=gts)
         pos += draw(st.integers(1, 50))
     return b.build()
 

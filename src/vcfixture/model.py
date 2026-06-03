@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from ._repr import CompactRepr, override
 from ._spec.fielddef import FieldDef
 from ._typing import StrPath
+from .allele import Allele
 from .genotype import Genotype
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ class Record(CompactRepr):
     pos: int  # 1-based
     ids: tuple[str, ...] | None  # None -> "."
     ref: str
-    alts: tuple[str, ...]  # may contain "*"
+    alts: tuple[Allele, ...]  # typed; may include SpanningDeletion()/symbolic/...
     qual: float | None
     filters: tuple[str, ...] | None  # None -> "."; () -> "PASS"
     info: Mapping[str, Any]  # id -> value(s); Flag -> True
@@ -47,7 +48,7 @@ class Record(CompactRepr):
 
     @override
     def __repr__(self) -> str:
-        alts = ",".join(self.alts) if self.alts else "."
+        alts = ",".join(a.render() for a in self.alts) if self.alts else "."
         out = f"Record({self.chrom}:{self.pos} {self.ref}>{alts} ×{len(self.samples)}"
         if self.labels:
             out += f" [{','.join(sorted(self.labels))}]"

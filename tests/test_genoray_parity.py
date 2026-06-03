@@ -6,6 +6,7 @@ import numpy as np
 
 from vcfixture._spec.number import Number
 from vcfixture._spec.types import Type
+from vcfixture.allele import Seq
 from vcfixture.build import VcfBuilder
 
 
@@ -18,13 +19,28 @@ def _genoray_biallelic():
         .fmt("GT")
         .fmt("DS", Number.A, Type.FLOAT)
         .record(
-            "chr1", 81262, ref="GAT", alt=["A"], gt=["0|1", "1|1"], DS=[[1.0], [2.0]]
+            "chr1",
+            81262,
+            ref="GAT",
+            alt=[Seq("A")],
+            gt=["0|1", "1|1"],
+            DS=[[1.0], [2.0]],
         )
         .record(
-            "chr1", 81262, ref="G", alt=["A"], gt=["./.", "0/1"], DS=[[None], [1.0]]
+            "chr1",
+            81262,
+            ref="G",
+            alt=[Seq("A")],
+            gt=["./.", "0/1"],
+            DS=[[None], [1.0]],
         )
         .record(
-            "chr1", 81265, ref="T", alt=["C"], gt=["1|0", "./."], DS=[[0.9], [None]]
+            "chr1",
+            81265,
+            ref="T",
+            alt=[Seq("C")],
+            gt=["1|0", "./."],
+            DS=[[0.9], [None]],
         )
         .build()
     )

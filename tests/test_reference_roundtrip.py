@@ -4,6 +4,7 @@ import tempfile
 import pysam
 import pytest
 
+from vcfixture.allele import classify_allele
 from vcfixture.build import VcfBuilder
 from vcfixture.reference import Reference
 
@@ -26,7 +27,13 @@ def test_reference_anchored_doc_round_trips():
     expected = []
     for pos0, klass in specs:
         rref, alts = ref.draw_ref_alt("chr1", pos0, klass=klass)
-        b.record("chr1", pos0 + 1, ref=rref, alt=alts, gt=["0|1"])  # 1-based POS
+        b.record(  # 1-based POS
+            "chr1",
+            pos0 + 1,
+            ref=rref,
+            alt=[classify_allele(a) for a in alts],
+            gt=["0|1"],
+        )
         expected.append((pos0 + 1, rref))
     doc = b.build()
     path = doc.write(os.path.join(tmp, "r.vcf.gz"), bgzip=True, index=True)
