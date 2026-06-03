@@ -6,8 +6,8 @@ from hypothesis.strategies import DrawFn
 from ._spec.fielddef import FieldDef
 from ._spec.number import Number
 from ._spec.types import Type
-from .allele import classify_allele
-from .build import VcfBuilder
+from .allele import SymbolicAllele, UnspecifiedAllele, classify_allele
+from .build import _SVCLAIM_RULES, VcfBuilder
 from .model import VcfDocument
 from .reference import ReferenceBuilder, ReferenceSpec
 from .truth import GroundTruth
@@ -411,6 +411,43 @@ def documents(
         gts = [draw(genotypes(ploidy, n_alt=n_alt)) for _ in samples]
         b.record("chr1", pos, ref=ref, alt=[classify_allele(a) for a in alts], gt=gts)
         pos += draw(st.integers(1, 50))
+    return b.build()
+
+
+_SYMBOLIC_SV = ["DEL", "INS", "DUP", "INV", "CNV"]
+
+
+@st.composite
+def symbolic_documents(
+    draw: DrawFn, max_samples: int = 3, max_records: int = 4
+) -> VcfDocument:
+    """Documents whose records carry symbolic SV alleles and <*>, with consistent
+    per-allele SVLEN/SVCLAIM. Reference-free (arbitrary single REF base)."""
+    n_samples = draw(st.integers(1, max_samples))
+    samples = [f"s{i}" for i in range(n_samples)]
+    ploidy = draw(st.integers(1, 2))
+    b = (
+        VcfBuilder(samples=samples, contigs=[("chr1", 1_000_000)])
+        .fmt("GT")
+        .info("SVLEN", Number.A, Type.INTEGER)
+        .info("SVCLAIM", Number.A, Type.STRING)
+    )
+    n_rec = draw(st.integers(1, max_records))
+    pos = 1000
+    for _ in range(n_rec):
+        ref = draw(st.sampled_from(_BASES))
+        kind = draw(st.sampled_from([*_SYMBOLIC_SV, "UNSPEC"]))
+        if kind == "UNSPEC":
+            alts: list[SymbolicAllele | UnspecifiedAllele] = [UnspecifiedAllele()]
+            info: dict[str, object] = {}
+        else:
+            svlen = draw(st.integers(1, 1000))
+            claim = draw(st.sampled_from(sorted(_SVCLAIM_RULES[kind])))
+            alts = [SymbolicAllele(kind)]
+            info = {"SVLEN": [svlen], "SVCLAIM": [claim]}
+        gts = [draw(genotypes(ploidy, n_alt=1)) for _ in samples]
+        b.record("chr1", pos, ref=ref, alt=alts, gt=gts, info=info)
+        pos += draw(st.integers(2000, 5000))
     return b.build()
 
 
