@@ -1,3 +1,27 @@
+## v0.6.0 (2026-06-03)
+
+### Feat
+
+- add vcfixture skill for consuming-lib maintainers
+- version= on document strategies with version-correct SVLEN/SVCLAIM
+- VcfBuilder version= param gates reserved fields and SVLEN cardinality
+- store VcfVersion on VcfDocument; derive fileformat header from it
+- gate reserved fields by version; SVLEN definition flips at 4.4
+- add orderable VcfVersion enum
+- export Allele construction vocabulary; benchmark symbolic path
+- Hypothesis strategy for symbolic SV documents + cyvcf2 oracle
+- emit ##ALT header lines for symbolic alleles
+- eager builder validation for symbolic/breakend alleles
+- per-allele AlleleTruth with is_sequence flag and SV geometry
+- add reserved structural-variant INFO/FORMAT fields
+- typed Allele union with classifier and smart constructors
+
+### Refactor
+
+- default VcfBuilder/strategies version to LATEST; document 4.1-4.5 support
+- derive symbolic SV type list from canonical set; pin SVCLAIM keys
+- store typed Allele objects in Record.alts
+
 ## v0.5.0 (2026-06-01)
 
 ### Feat
