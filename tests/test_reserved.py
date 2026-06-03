@@ -28,3 +28,17 @@ def test_reserved_flag():
 def test_unknown_reserved_raises():
     with pytest.raises(KeyError):
         reserved("NOPE", "INFO")
+
+
+def test_sv_reserved_info_fields():
+    from vcfixture._spec.number import NumberKind
+    from vcfixture._spec.reserved import reserved
+    from vcfixture._spec.types import Type
+
+    svlen = reserved("SVLEN", "INFO")
+    assert svlen.number.kind is NumberKind.A and svlen.type is Type.INTEGER
+    assert reserved("SVCLAIM", "INFO").number.kind is NumberKind.A
+    assert reserved("END", "INFO").type is Type.INTEGER
+    assert reserved("MATEID", "INFO").type is Type.STRING
+    assert reserved("IMPRECISE", "INFO").type is Type.FLAG
+    assert reserved("CN", "FORMAT").type is Type.FLOAT
