@@ -5,15 +5,19 @@ from pathlib import Path
 
 import pytest
 from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
+from vcfixture import VcfVersion
 from vcfixture import strategies as S
 
 cyvcf2 = pytest.importorskip("cyvcf2")
 
 
-@settings(max_examples=50, deadline=None, suppress_health_check=[HealthCheck.too_slow])
-@given(S.symbolic_documents())
-def test_symbolic_alts_round_trip_through_cyvcf2(doc):
+@pytest.mark.parametrize("version", list(VcfVersion))
+@settings(max_examples=20, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@given(data=st.data())
+def test_symbolic_alts_round_trip_through_cyvcf2(version, data):
+    doc = data.draw(S.symbolic_documents(version=version))
     truth = doc.truth()
     d = tempfile.mkdtemp()
     path = doc.write(Path(d) / "x.vcf.gz", bgzip=True, index=True)

@@ -5,6 +5,7 @@ from importlib import metadata
 from . import strategies
 from ._spec.number import Number
 from ._spec.types import Type
+from ._spec.version import VcfVersion
 from .allele import (
     Allele,
     Bnd,
@@ -45,6 +46,7 @@ __all__ = [
     "Unspecified",
     "UnspecifiedAllele",
     "VcfBuilder",
+    "VcfVersion",
     "strategies",
     "__version__",
 ]

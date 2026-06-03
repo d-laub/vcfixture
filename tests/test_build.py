@@ -60,3 +60,64 @@ def test_cardinality_mismatch_raises():
     )
     with pytest.raises(ValueError, match="cardinality"):
         b.record("chr1", 1, ref="A", alt=[Seq("T")], gt=["0/1"], AD=[[5]])
+
+
+def test_builder_version_sets_header():
+    from vcfixture import VcfBuilder, VcfVersion
+
+    doc = (
+        VcfBuilder(samples=["s1"], contigs=[("chr1", 1000)], version=VcfVersion.V4_2)
+        .fmt("GT")
+        .build()
+    )
+    assert doc.render().startswith("##fileformat=VCFv4.2\n")
+
+
+def test_builder_rejects_svclaim_before_4_4():
+    from vcfixture import VcfBuilder, VcfVersion
+
+    b = VcfBuilder(samples=["s1"], contigs=[("chr1", 1000)], version=VcfVersion.V4_3)
+    with pytest.raises(ValueError, match="introduced in VCFv4.4"):
+        b.info("SVCLAIM")
+
+
+def test_svlen_number_a_count_enforced_at_4_4():
+    from vcfixture import Sym, VcfBuilder, VcfVersion
+
+    b = (
+        VcfBuilder(samples=["s1"], contigs=[("chr1", 100000)], version=VcfVersion.V4_4)
+        .fmt("GT")
+        .info("SVLEN")
+    )
+    with pytest.raises(ValueError, match="cardinality"):
+        # one ALT but two SVLEN values: Number=A requires exactly n_alt
+        b.record(
+            "chr1", 10, ref="A", alt=[Sym("INS")], gt=["0/1"], info={"SVLEN": [50, 60]}
+        )
+
+
+def test_svlen_any_count_allowed_at_4_3():
+    from vcfixture import Sym, VcfBuilder, VcfVersion
+
+    b = (
+        VcfBuilder(samples=["s1"], contigs=[("chr1", 100000)], version=VcfVersion.V4_3)
+        .fmt("GT")
+        .info("SVLEN")
+    )
+    # Number=. at 4.3: no cardinality enforcement; single value for single ALT is fine.
+    b.record("chr1", 10, ref="A", alt=[Sym("INS")], gt=["0/1"], info={"SVLEN": [30]})
+    assert b.build().render().startswith("##fileformat=VCFv4.3\n")
+
+
+def test_symbolic_del_no_svclaim_required_before_4_4():
+    from vcfixture import Sym, VcfBuilder, VcfVersion
+
+    # DEL requires SVCLAIM at >= 4.4, but SVCLAIM does not exist pre-4.4, so the
+    # requirement must not apply there.
+    b = (
+        VcfBuilder(samples=["s1"], contigs=[("chr1", 100000)], version=VcfVersion.V4_3)
+        .fmt("GT")
+        .info("SVLEN")
+    )
+    b.record("chr1", 10, ref="A", alt=[Sym("DEL")], gt=["0/1"], info={"SVLEN": [-200]})
+    assert "DEL" in b.build().render()

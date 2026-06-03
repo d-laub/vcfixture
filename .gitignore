@@ -7,3 +7,4 @@ build/
 .hypothesis/
 .pytest_cache/
 .worktrees/
+.claude/worktrees/

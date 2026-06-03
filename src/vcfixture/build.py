@@ -8,6 +8,7 @@ from ._spec.fielddef import FieldDef
 from ._spec.number import Number, NumberKind
 from ._spec.reserved import reserved
 from ._spec.types import Type
+from ._spec.version import LATEST, VcfVersion
 from ._typing import StrPath
 from .allele import (
     Allele,
@@ -49,11 +50,11 @@ class VcfBuilder:
         self,
         samples: Iterable[str],
         contigs: Iterable[tuple[str, int | None]],
-        fileformat: str = "VCFv4.5",
+        version: VcfVersion = LATEST,
     ):
         self._samples = tuple(samples)
         self._contigs = tuple(ContigDef(c[0], c[1]) for c in contigs)
-        self._fileformat = fileformat
+        self._version = version
         self._info_defs: dict[str, FieldDef] = {}
         self._format_defs: dict[str, FieldDef] = {}
         self._filter_defs: list[tuple[str, str]] = []
@@ -88,8 +89,8 @@ class VcfBuilder:
         self._alt_defs[id] = description
         return self
 
-    @staticmethod
     def _make_def(
+        self,
         id: str,
         number: Number | None,
         type: Type | None,
@@ -98,7 +99,7 @@ class VcfBuilder:
     ) -> FieldDef:
         if number is None or type is None:
             try:
-                return reserved(id, kind)
+                return reserved(id, kind, self._version)
             except KeyError:
                 raise ValueError(
                     f"{kind} field {id!r} is not a known reserved field; "
@@ -106,8 +107,8 @@ class VcfBuilder:
                 ) from None
         return FieldDef(id, number, type, description or id, kind)
 
-    @staticmethod
     def _validate_alleles(
+        self,
         ref: str,
         alts: tuple[Allele, ...],
         info: Mapping[str, object] | None,
@@ -135,7 +136,11 @@ class VcfBuilder:
                         f"SVCLAIM {cl!r} invalid for {a.render()}; "
                         f"allowed {sorted(allowed)}"
                     )
-                if a.first_type in _SVCLAIM_REQUIRED and cl is None:
+                if (
+                    self._version >= VcfVersion.V4_4
+                    and a.first_type in _SVCLAIM_REQUIRED
+                    and cl is None
+                ):
                     raise ValueError(f"SVCLAIM required for {a.render()} (D/J/DJ)")
             elif isinstance(a, (BreakendAllele, UnspecifiedAllele, SpanningDeletion)):
                 if sv is not None:
@@ -254,7 +259,7 @@ class VcfBuilder:
         alt_ids.update(self._alt_defs)
         alt_defs = tuple(AltDef(i, d) for i, d in alt_ids.items())
         return VcfDocument(
-            fileformat=self._fileformat,
+            version=self._version,
             info_defs=tuple(self._info_defs.values()),
             format_defs=tuple(self._format_defs.values()),
             filter_defs=tuple(self._filter_defs),

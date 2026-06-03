@@ -1,5 +1,6 @@
 from hypothesis.vendor.pretty import pretty
 
+from vcfixture import VcfVersion
 from vcfixture._spec.fielddef import FieldDef
 from vcfixture._spec.number import Number
 from vcfixture._spec.types import Type
@@ -111,7 +112,7 @@ def test_vcfdocument_repr_compact():
         kind="FORMAT",
     )
     doc = VcfDocument(
-        fileformat="VCFv4.5",
+        version=VcfVersion.V4_5,
         info_defs=(),
         format_defs=(gt,),
         filter_defs=(),
@@ -154,7 +155,7 @@ def test_full_document_pretty_is_bounded():
         kind="FORMAT",
     )
     doc = VcfDocument(
-        fileformat="VCFv4.5",
+        version=VcfVersion.V4_5,
         info_defs=(),
         format_defs=(gt,),
         filter_defs=(),

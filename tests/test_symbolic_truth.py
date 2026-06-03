@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from vcfixture import VcfVersion
 from vcfixture.allele import Seq, Star, Sym, Unspecified
 from vcfixture.genotype import Genotype
 from vcfixture.model import ContigDef, Record, VcfDocument
@@ -21,7 +22,7 @@ def _doc(alts: tuple, info: dict) -> VcfDocument:
         samples=({"GT": Genotype.parse("0/1")},),
     )
     return VcfDocument(
-        fileformat="VCFv4.5",
+        version=VcfVersion.V4_5,
         info_defs=(),
         format_defs=(),
         filter_defs=(),

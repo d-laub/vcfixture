@@ -3,6 +3,7 @@ from __future__ import annotations
 from .fielddef import FieldDef
 from .number import Number
 from .types import Type
+from .version import LATEST, VcfVersion
 
 _INFO = {
     "AA": FieldDef("AA", Number.ONE, Type.STRING, "Ancestral allele", "INFO"),
@@ -56,6 +57,34 @@ _FORMAT = {
 }
 
 
-def reserved(id: str, kind: str) -> FieldDef:
+# Version each reserved field was introduced. Fields absent from these maps
+# exist since 4.1. Verified against docs/reference/VCFv4.*.tex: among the current
+# registry only SVCLAIM (INFO) and LEN (FORMAT, the <*> reference block) are new
+# in 4.4; everything else is defined in the 4.1 spec.
+_SINCE_INFO: dict[str, VcfVersion] = {"SVCLAIM": VcfVersion.V4_4}
+_SINCE_FORMAT: dict[str, VcfVersion] = {"LEN": VcfVersion.V4_4}
+
+# SVLEN's definition changed at the 4.3 -> 4.4 boundary (the one breaking change):
+# Number=. + "difference in length" (signed) became Number=A + "length" (unsigned).
+# The _INFO entry above holds the >= 4.4 form; this is the <= 4.3 form.
+_SVLEN_PRE_4_4 = FieldDef(
+    "SVLEN",
+    Number.DOT,
+    Type.INTEGER,
+    "Difference in length between REF and ALT alleles",
+    "INFO",
+)
+
+
+def reserved(id: str, kind: str, version: VcfVersion = LATEST) -> FieldDef:
     table = _INFO if kind == "INFO" else _FORMAT
-    return table[id]
+    fd = table[id]  # KeyError => genuinely unknown reserved id
+    since = (_SINCE_INFO if kind == "INFO" else _SINCE_FORMAT).get(id, VcfVersion.V4_1)
+    if version < since:
+        raise ValueError(
+            f"{kind} field {id!r} was introduced in {since.value}; "
+            f"not available in {version.value}"
+        )
+    if id == "SVLEN" and kind == "INFO" and version < VcfVersion.V4_4:
+        return _SVLEN_PRE_4_4
+    return fd

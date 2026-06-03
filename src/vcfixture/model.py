@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from ._repr import CompactRepr, override
 from ._spec.fielddef import FieldDef
+from ._spec.version import VcfVersion
 from ._typing import StrPath
 from .allele import Allele
 from .genotype import Genotype
@@ -74,7 +75,7 @@ class Record(CompactRepr):
 
 @dataclass(frozen=True)
 class VcfDocument(CompactRepr):
-    fileformat: str
+    version: VcfVersion
     info_defs: tuple[FieldDef, ...]
     format_defs: tuple[FieldDef, ...]
     filter_defs: tuple[tuple[str, str], ...]  # (id, description)
@@ -86,7 +87,7 @@ class VcfDocument(CompactRepr):
     @override
     def __repr__(self) -> str:
         return (
-            f"VcfDocument({self.fileformat} samples={len(self.samples)} "
+            f"VcfDocument({self.version.value} samples={len(self.samples)} "
             f"records={len(self.records)} info={len(self.info_defs)} "
             f"format={len(self.format_defs)})"
         )

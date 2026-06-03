@@ -92,7 +92,7 @@ def _render_record(rec: Record) -> str:
 
 
 def render_document(doc: VcfDocument) -> str:
-    lines = [f"##fileformat={doc.fileformat}"]
+    lines = [f"##fileformat={doc.version.value}"]
     for c in doc.contigs:
         lines.append(c.header_line())
     for f in doc.info_defs:

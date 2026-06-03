@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-vcfixture generates small VCF (v4.5) test data — via an explicit builder or
+vcfixture generates small VCF test data conforming to spec versions 4.1–4.5
+(selectable via `version=`, default latest) — via an explicit builder or
 Hypothesis strategies — and returns the **decoded ground truth** alongside, so
 parser tests assert against a known oracle instead of hand-coded numpy literals.
 It exists to replace the hand-maintained VCF fixtures + hand-derived expected
@@ -52,11 +53,14 @@ truth free.
  Hypothesis draws┘     (immutable)           └─→ truth.py ─→ GroundTruth (numpy + dicts)
 ```
 
-- **`_spec/`** — the spec layer, modeled against VCF 4.5. `number.py` (`Number`:
+- **`_spec/`** — the spec layer, covering VCF 4.1–4.5. `version.py` (`VcfVersion`:
+  orderable enum `V4_1..V4_5` + `LATEST`), `number.py` (`Number`:
   `ONE | FIXED(n) | A | R | G | DOT | FLAG` + `cardinality()`), `types.py`
   (`Type`), `fielddef.py` (`FieldDef` + validity invariants), `genotype_order.py`
   (`Number=G` enumerator for placing PL/GL), `reserved.py` (curated reserved-field
-  registry: AC/AF/AN/DP/AD/PL/GL/GT/...). Everything else builds on these.
+  registry: AC/AF/AN/DP/AD/PL/GL/GT/...; `reserved(id, kind, version)` gates fields
+  by introduction version and returns the version-correct `SVLEN` — its definition
+  flips at the 4.3/4.4 boundary). Everything else builds on these.
 - **`build.py`** (`VcfBuilder`) — explicit construction for named tests. Validates
   **eagerly**: Flag⇒Number=0 & INFO-only, undefined INFO/FORMAT ID used in a
   record, GT index out of range, value count ≠ resolved cardinality.
@@ -76,9 +80,10 @@ truth free.
   Reference-free by default (arbitrary REF — fine for genoray).
 - **`io.py`** — text always; bgzip `.vcf.gz` + `.csi`/`.tbi` index via pysam on request.
 
-The public API (`__init__.py`) re-exports `VcfBuilder`, `Genotype`, `Reference`
-family, `GroundTruth`, `Number`, `Type`, and the `strategies` module. `_spec/`
-and `_typing.py` are private.
+The public API (`__init__.py`) re-exports `VcfBuilder`, `VcfVersion`, `Genotype`,
+`Reference` family, `GroundTruth`, `Number`, `Type`, and the `strategies` module.
+`_spec/` and `_typing.py` are private (`VcfVersion` is the one `_spec/` type
+re-exported; `LATEST` stays internal).
 
 ## Conventions that matter here
 
