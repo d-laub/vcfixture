@@ -1,3 +1,4 @@
+from vcfixture import VcfVersion
 from vcfixture._spec.reserved import reserved
 from vcfixture.allele import Seq
 from vcfixture.genotype import Genotype
@@ -21,7 +22,7 @@ def _doc():
         ),
     )
     return VcfDocument(
-        fileformat="VCFv4.5",
+        version=VcfVersion.V4_5,
         info_defs=(),
         format_defs=(reserved("GT", "FORMAT"),),
         filter_defs=(),
@@ -52,6 +53,6 @@ def test_ploidy_varies_uses_max():
         ({"GT": Genotype.parse("0/0/1")},),
     )
     doc = VcfDocument(
-        "VCFv4.5", (), (), (), (ContigDef("chr1", None),), ("s1",), (rec,)
+        VcfVersion.V4_5, (), (), (), (ContigDef("chr1", None),), ("s1",), (rec,)
     )
     assert doc.max_ploidy() == 3

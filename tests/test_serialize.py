@@ -1,3 +1,4 @@
+from vcfixture import VcfVersion
 from vcfixture._spec.fielddef import FieldDef
 from vcfixture._spec.number import Number
 from vcfixture._spec.types import Type
@@ -28,7 +29,7 @@ def _doc():
         ),
     )
     return VcfDocument(
-        "VCFv4.5",
+        VcfVersion.V4_5,
         (af, db),
         (gt, ds),
         (),

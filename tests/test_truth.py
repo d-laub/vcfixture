@@ -1,5 +1,6 @@
 import numpy as np
 
+from vcfixture import VcfVersion
 from vcfixture.allele import Seq
 from vcfixture.genotype import Genotype
 from vcfixture.model import ContigDef, Record, VcfDocument
@@ -23,7 +24,7 @@ def _doc():
         ),
     )
     return VcfDocument(
-        "VCFv4.5", (), (), (), (ContigDef("chr1", 1000),), ("s1", "s2"), (rec,)
+        VcfVersion.V4_5, (), (), (), (ContigDef("chr1", 1000),), ("s1", "s2"), (rec,)
     )
 
 
