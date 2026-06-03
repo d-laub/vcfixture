@@ -54,6 +54,35 @@ def _allele_truth(ref: str, pos: int, allele: Allele, svlen_val: object) -> Alle
 
 @dataclass(frozen=True)
 class GroundTruth:
+    """Decoded ground truth derived from a ``VcfDocument``.
+
+    Produced by ``VcfDocument.truth()`` (or ``derive_truth``).  Every field is
+    parallel to the record list of the originating document, so
+    ``pos[i]``, ``ref[i]``, ``genotypes[i]``, etc. all describe the same record.
+
+    Attributes:
+        samples: Sample names in column order.
+        contigs: Contig id for each record (parallel to ``pos``).
+        pos: ``(records,)`` int64 array of 1-based positions.
+        ref: REF allele string per record.
+        alts: ALT allele strings per record (rendered to text).
+        variant_class: Variant-class label per record
+            (e.g. ``"SNP"``, ``"MNP"``, ``"INS"``, ``"DEL"``, ``"DELINS"``,
+            ``"SPANNING_DEL"``).
+        genotypes: ``(records, samples, ploidy)`` int32 array; ``-1`` encodes a
+            missing allele call.
+        phasing: ``(records, samples)`` bool array; ``True`` when the genotype is
+            fully phased (``|``-separated in the VCF).
+        info: Per-record mapping from INFO field id to decoded value(s).
+        format: Per-record, per-sample mapping from FORMAT field id to
+            decoded value(s).  GT is excluded (use ``genotypes``/``phasing``).
+        labels: Per-record set of FILTER labels.
+        alts_truth: Per-record, per-ALT ``AlleleTruth`` objects carrying
+            allele kind, sequence flag, SV type, SVLEN, and END.
+        is_sequence_mask: Per-record bool array (length = number of ALTs)
+            indicating which ALTs are literal DNA sequences a tool may splice.
+    """
+
     samples: tuple[str, ...]
     contigs: tuple[str, ...]
     pos: np.ndarray  # (records,) int64, 1-based

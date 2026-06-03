@@ -15,6 +15,12 @@ _BND_SINGLE_RE = re.compile(r"^(?:\.[ACGTNacgtn]+|[ACGTNacgtn]+\.)$")
 
 @dataclass(frozen=True)
 class SequenceAllele(CompactRepr):
+    """A literal nucleotide ALT (or REF) allele, e.g. ``A``, ``GAT``.
+
+    Attributes:
+        bases: The allele sequence; must match ``[ACGTNacgtn]+``.
+    """
+
     bases: str
 
     def __post_init__(self) -> None:
@@ -33,6 +39,8 @@ class SequenceAllele(CompactRepr):
 
 @dataclass(frozen=True)
 class SpanningDeletion(CompactRepr):
+    """The spanning-deletion ALT ``*`` (alias ``Star``)."""
+
     def render(self) -> str:
         return "*"
 
@@ -43,6 +51,14 @@ class SpanningDeletion(CompactRepr):
 
 @dataclass(frozen=True)
 class SymbolicAllele(CompactRepr):
+    """A symbolic structural-variant ALT, e.g. ``<DEL>`` or ``<DUP:TANDEM>``
+    (alias ``Sym``).
+
+    Attributes:
+        first_type: SV type; must be one of ``DEL``, ``INS``, ``DUP``, ``INV``, ``CNV``.
+        subtypes: Optional subtype tokens joined by ``:`` when rendered.
+    """
+
     first_type: str
     subtypes: tuple[str, ...] = ()
 
@@ -55,6 +71,7 @@ class SymbolicAllele(CompactRepr):
 
     @property
     def type_str(self) -> str:
+        """The inner ``<...>`` token, e.g. ``DEL`` or ``DUP:TANDEM``."""
         return ":".join((self.first_type, *self.subtypes))
 
     def render(self) -> str:
@@ -66,27 +83,34 @@ class SymbolicAllele(CompactRepr):
 
     @classmethod
     def deletion(cls, *subtypes: str) -> SymbolicAllele:
+        """Construct a ``<DEL[:subtypes...]>`` symbolic allele."""
         return cls("DEL", subtypes)
 
     @classmethod
     def insertion(cls, *subtypes: str) -> SymbolicAllele:
+        """Construct an ``<INS[:subtypes...]>`` symbolic allele."""
         return cls("INS", subtypes)
 
     @classmethod
     def duplication(cls, *subtypes: str) -> SymbolicAllele:
+        """Construct a ``<DUP[:subtypes...]>`` symbolic allele."""
         return cls("DUP", subtypes)
 
     @classmethod
     def inversion(cls, *subtypes: str) -> SymbolicAllele:
+        """Construct an ``<INV[:subtypes...]>`` symbolic allele."""
         return cls("INV", subtypes)
 
     @classmethod
     def cnv(cls, *subtypes: str) -> SymbolicAllele:
+        """Construct a ``<CNV[:subtypes...]>`` symbolic allele."""
         return cls("CNV", subtypes)
 
 
 @dataclass(frozen=True)
 class UnspecifiedAllele(CompactRepr):
+    """The unspecified/non-ref ALT ``<*>`` (alias ``Unspecified``)."""
+
     def render(self) -> str:
         return "<*>"
 
@@ -97,6 +121,14 @@ class UnspecifiedAllele(CompactRepr):
 
 @dataclass(frozen=True)
 class BreakendAllele(CompactRepr):
+    """A breakend ALT replacement string, e.g. ``G[chr2:321[`` (alias ``Bnd``).
+
+    Attributes:
+        raw: The verbatim ALT text.
+        single: ``True`` for single-breakend forms (``.t`` / ``t.``);
+            ``False`` for paired forms (``t[p[``, ``t]p]``, ``[p[t``, ``]p]t``).
+    """
+
     raw: str
     single: bool = False
 
@@ -109,6 +141,18 @@ class BreakendAllele(CompactRepr):
 
     @classmethod
     def parse(cls, s: str) -> BreakendAllele:
+        """Parse a breakend replacement string into a ``BreakendAllele``.
+
+        Args:
+            s: The ALT text — paired forms (``t[p[``, ``t]p]``, ``[p[t``,
+                ``]p]t``) or single-breakend forms (``.t`` / ``t.``).
+
+        Returns:
+            The parsed breakend, with ``single=True`` for single-breakend forms.
+
+        Raises:
+            ValueError: ``s`` is not a valid breakend replacement string.
+        """
         if _BND_SINGLE_RE.match(s):
             return cls(raw=s, single=True)
         if _BND_PAIRED_RE.match(s):
@@ -116,6 +160,8 @@ class BreakendAllele(CompactRepr):
         raise ValueError(f"not a valid breakend replacement string: {s!r}")
 
 
+# Union of all five allele types.  Anywhere vcfixture accepts or returns an
+# allele value, this is the annotated type.
 Allele: TypeAlias = (
     SequenceAllele
     | SpanningDeletion
@@ -124,7 +170,7 @@ Allele: TypeAlias = (
     | BreakendAllele
 )
 
-# Ergonomic aliases for terse fixtures.
+# Ergonomic aliases for terse fixtures: Seq / Sym / Star / Unspecified / Bnd.
 Seq = SequenceAllele
 Sym = SymbolicAllele
 Star = SpanningDeletion

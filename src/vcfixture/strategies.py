@@ -59,6 +59,16 @@ def _ref_alt(draw: DrawFn, klass: str) -> tuple[str, str]:
 
 @st.composite
 def genotypes(draw: DrawFn, ploidy: int, n_alt: int, missing_rate: float = 0.1) -> str:
+    """Draw a VCF GT string for a single sample.
+
+    Constructs the genotype directly from drawn parameters — no rejection
+    sampling — so every drawn value is a valid, spec-conformant GT token.
+
+    Args:
+        ploidy: Number of allele slots (e.g. 1 for haploid, 2 for diploid).
+        n_alt: Number of ALT alleles; allele indices are drawn from ``[0, n_alt]``.
+        missing_rate: Probability that any individual allele slot is ``"."``.
+    """
     alleles = []
     for _ in range(ploidy):
         if draw(st.floats(0, 1)) < missing_rate:
@@ -96,9 +106,21 @@ def _scalar_value(draw: DrawFn, typ: Type) -> int | float | str:
 def field_value(
     draw: DrawFn, fielddef: FieldDef, n_alt: int, ploidy: int
 ) -> bool | list[int | float | str]:
-    """A spec-valid value for `fielddef` at a record with n_alt/ploidy.
-    Flag -> True. Otherwise a list of `cardinality` scalars (Number=. picks a
-    small random count). Safe alphabets / float32-exact floats."""
+    """Draw a spec-valid value for a single INFO or FORMAT field.
+
+    Constructs the value directly — no rejection sampling.  Flag fields
+    return ``True``; all other fields return a list of scalars whose length
+    matches the resolved cardinality.  ``Number=.`` fields pick a small
+    random count (1–3).  String/Character values use a safe alphanumeric
+    alphabet; floats are float32-exact and finite.
+
+    Args:
+        fielddef: Field definition carrying the ``Number`` and ``Type``.
+        n_alt: Number of ALT alleles for the current record (used to resolve
+            ``Number.A`` and ``Number.R`` cardinalities).
+        ploidy: Sample ploidy for the current record (used to resolve
+            ``Number.G`` cardinality).
+    """
     if fielddef.type is Type.FLAG:
         return True
     card = fielddef.number.cardinality(n_alt, ploidy)
@@ -140,6 +162,19 @@ MATRIX_INFO_DEFS, MATRIX_FORMAT_DEFS = _matrix_field_defs()
 def documents_with_fields(
     draw: DrawFn, max_samples: int = 3, max_records: int = 3, max_alt: int = 3
 ) -> VcfDocument:
+    """Draw a ``VcfDocument`` exercising the full Number×Type field matrix.
+
+    Declares every combination of ``Number`` (1, 2, A, R, G, .) and ``Type``
+    (Integer, Float, Character, String) as both INFO and FORMAT fields, plus a
+    FLAG INFO field.  Every record receives a drawn value for each field,
+    providing exhaustive coverage of INFO/FORMAT decoding.  Records are
+    reference-free (arbitrary single REF base) and not position-sorted.
+
+    Args:
+        max_samples: Upper bound on the number of samples drawn.
+        max_records: Upper bound on the number of variant records drawn.
+        max_alt: Upper bound on the number of ALT alleles per record.
+    """
     n_samples = draw(st.integers(1, max_samples))
     samples = [f"s{i}" for i in range(n_samples)]
     ploidy = draw(st.integers(1, 2))
@@ -195,8 +230,20 @@ def references(
     max_contig_len: int = 2000,
     max_repeats: int = 3,
 ) -> ReferenceSpec:
-    """Draw a small reference-consistent ``ReferenceSpec`` with optional,
-    non-overlapping planted tandem repeats (advertised on ``spec.repeats``)."""
+    """Draw a small ``ReferenceSpec`` with optional planted tandem repeats.
+
+    Generates a synthetic reference genome with 1–``max_contigs`` named contigs
+    and up to ``max_repeats`` non-overlapping tandem repeats.  Repeat
+    positions are tracked per contig to guarantee they never overlap.  The
+    resulting ``ReferenceSpec`` is suitable for passing to ``documents`` or
+    ``reference_and_documents``.
+
+    Args:
+        max_contigs: Upper bound on the number of contigs generated.
+        max_contig_len: Upper bound on per-contig length in base pairs.
+        max_repeats: Upper bound on the number of tandem repeats planted
+            across all contigs.
+    """
     seed = draw(st.integers(min_value=0, max_value=2**32 - 1))
     rb = ReferenceBuilder(seed=seed)
 
@@ -435,8 +482,19 @@ def symbolic_documents(
     max_records: int = 4,
     version: VcfVersion = LATEST,
 ) -> VcfDocument:
-    """Documents whose records carry symbolic SV alleles and <*>, with consistent
-    per-allele SVLEN/SVCLAIM. Reference-free (arbitrary single REF base)."""
+    """Draw a ``VcfDocument`` whose records carry symbolic SV alleles.
+
+    Each record holds one symbolic allele drawn from the full set of first-level
+    SV types (``DEL``, ``DUP``, ``INS``, ``INV``, ``CNV``, …) or the unspecified
+    allele ``<*>``.  Symbolic records include consistent per-allele ``SVLEN`` and
+    ``SVCLAIM`` INFO values; unspecified records carry no INFO fields.  Records
+    are reference-free (arbitrary single REF base) with positions spaced 2–5 kbp
+    apart.
+
+    Args:
+        max_samples: Upper bound on the number of samples drawn.
+        max_records: Upper bound on the number of variant records drawn.
+    """
     n_samples = draw(st.integers(1, max_samples))
     samples = [f"s{i}" for i in range(n_samples)]
     ploidy = draw(st.integers(1, 2))
@@ -486,7 +544,23 @@ def reference_and_documents(
     max_repeats: int = 3,
     version: VcfVersion = LATEST,
 ) -> tuple[ReferenceSpec, VcfDocument, GroundTruth]:
-    """Draw a consistent ``(ReferenceSpec, VcfDocument, GroundTruth)``."""
+    """Draw a consistent ``(ReferenceSpec, VcfDocument, GroundTruth)`` triple.
+
+    Combines ``references`` and ``documents`` so that the document's REF alleles
+    match the drawn reference and records are in position order.  The
+    ``GroundTruth`` is derived in the same draw, giving a fully consistent
+    triple ready for round-trip testing.
+
+    Args:
+        max_samples: Upper bound on the number of samples drawn.
+        max_records: Upper bound on the number of variant records drawn.
+        violations: Set of violation classes to opt into (see ``documents``).
+        label_overrides: Mapping from default label strings to replacement
+            strings (see ``documents``).
+        max_contigs: Upper bound on the number of reference contigs drawn.
+        max_contig_len: Upper bound on per-contig length in base pairs.
+        max_repeats: Upper bound on the number of tandem repeats planted.
+    """
     spec = draw(
         references(
             max_contigs=max_contigs,

@@ -20,6 +20,10 @@ dev = [
     "commitizen>=3.29",
     "prek>=0.2",
 ]
+docs = [
+    "mkdocstrings-python>=2.0.3",
+    "zensical>=0.0.43",
+]
 
 [tool.uv.build-backend]
 module-root = "src"

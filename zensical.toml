@@ -1,0 +1,47 @@
+[project]
+site_name = "vcfixture"
+site_description = "Generate small VCF test data with decoded ground truth."
+site_url = "https://d-laub.github.io/vcfixture/"
+repo_url = "https://github.com/d-laub/vcfixture"
+repo_name = "d-laub/vcfixture"
+edit_uri = "edit/main/docs/site/"
+docs_dir = "docs/site"
+site_dir = "site"
+nav = [
+  { "Home" = "index.md" },
+  { "Guide" = [
+      "guide/vcfbuilder.md",
+      "guide/property-testing.md",
+  ]},
+  { "API Reference" = "api/index.md" },
+]
+
+[project.theme]
+variant = "classic"
+features = [
+  "navigation.sections",
+  "navigation.top",
+  "navigation.footer",
+  "content.action.view",
+  "search.highlight",
+]
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+inventories = ["https://docs.python.org/3/objects.inv"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_style = "google"
+show_source = false
+show_root_heading = true
+members_order = "source"

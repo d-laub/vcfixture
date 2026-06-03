@@ -8,3 +8,6 @@ build/
 .pytest_cache/
 .worktrees/
 .claude/worktrees/
+
+# Zensical build output
+/site/
