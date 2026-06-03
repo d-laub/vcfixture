@@ -17,7 +17,7 @@ nav = [
 ]
 
 [project.theme]
-variant = "classic"
+variant = "modern"
 features = [
   "navigation.sections",
   "navigation.top",
